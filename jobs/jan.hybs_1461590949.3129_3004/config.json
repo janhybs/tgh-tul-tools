@@ -1,0 +1,35 @@
+{
+    "root": "/var/www/html/tgh.nti.tul.cz/jobs/jan.hybs_1461590949.3129_3004",
+    "result": "/var/www/html/tgh.nti.tul.cz/jobs/jan.hybs_1461590949.3129_3004/result.json",
+    "config": "/var/www/html/tgh.nti.tul.cz/jobs/jan.hybs_1461590949.3129_3004/config.json",
+    "filename": "main.cpp",
+    "attempt": 8,
+    "user": {
+        "username": "jan.hybs",
+        "domain": "tul.cz",
+        "groups": [
+            "member",
+            "staff",
+            "employee",
+            "student"
+        ],
+        "nameuser": "hybs.jan"
+    },
+    "lang": {
+        "id": "cpp",
+        "extension": "cpp",
+        "name": "C++",
+        "version": "g++ 4.7.2.5"
+    },
+    "problem": {
+        "id": "TEST",
+        "name": "pokusná úloha",
+        "ref_script": "../generic",
+        "input": [
+            {
+                "id": "1",
+                "time": 60
+            }
+        ]
+    }
+}
