@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # author:   Jan Hybs
 
-import json
+import json, os
 
 
 class Langs(object):
@@ -77,10 +77,11 @@ class ProcessException(Exception):
     def __init__(self, info):
         super(ProcessException, self).__init__()
         self.info = info
+        import json
+        print json.dumps(info, indent=4)
 
 
 def read(f):
-    import os
     if not os.path.exists(f):
         return ''
 
@@ -91,9 +92,44 @@ def read(f):
 
 
 def remove_empty(f):
-    import os
     if not os.path.exists(f):
         return
 
     if os.stat(f).st_size == 0:
         return os.unlink(f)
+
+
+def ensure_path(f, is_file=True):
+    if not f:
+        return
+    p = os.path.dirname(f) if is_file else f
+    if not os.path.exists(p):
+        os.makedirs(p)
+
+
+def compare(a, b):
+    result = None
+    eof = False
+    with open(a, 'rb') as f1, open(b, 'rb') as f2:
+        while True:
+
+            # read lines
+            l1 = f1.readline()
+            l2 = f2.readline()
+            eof = l1 == ''
+
+            # right strip white chars (\r\n, \n, \r, max differ)
+            l1 = l1.rstrip()
+            l2 = l2.rstrip()
+
+            if l1 == '' and l2 == '':
+                result = 0
+
+                if eof:
+                    break
+
+            if l1 != l2:
+                result = 1
+                break
+
+    return True if result == 0 else False
