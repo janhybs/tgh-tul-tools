@@ -1,0 +1,60 @@
+{
+    "CS": {
+        "id": "CS",
+        "extension": "cs",
+        "name": "C#",
+        "version": "Mono 3.0.7",
+        "compile": "gmcs",
+        "run": "mono"
+    },
+    "C": {
+        "id": "C",
+        "extension": "c",
+        "name": "C",
+        "version": "gcc 4.7.2.5",
+        "compile": "/opt/centos/devtoolset-1.1/root/usr/bin/gcc",
+        "run": true
+    },
+    "CPP": {
+        "id": "CPP",
+        "extension": "cpp",
+        "name": "C++",
+        "version": "g++ 4.7.2.5",
+        "compilea": "/opt/centos/devtoolset-1.1/root/usr/bin/g++",
+        "compile": "g++",
+        "run": true
+    },
+    "CPP11": {
+        "id": "CPP11",
+        "extension": "cpp",
+        "name": "C++",
+        "version": "g++ 4.7.2.5",
+        "compile": "/opt/centos/devtoolset-1.1/root/usr/bin/g++",
+        "run": true
+    },
+    "JAVA": {
+        "id": "JAVA",
+        "extension": "java",
+        "name": "Java",
+        "version": "java 1.8.0_45",
+        "compile": "/etc/alternatives/java_sdk_1.8.0/bin/javac",
+        "run": "/etc/alternatives/java_sdk_1.8.0/bin/java"
+    },
+    "PASCAL": {
+        "id": "PASCAL",
+        "extension": "pas",
+        "name": "Pascal",
+        "version": "fpc 2.4.0",
+        "compile": "fpc",
+        "run": true
+    },
+    "PYTHON27": {
+        "id": "PYTHON27",
+        "extension": "py",
+        "name": "Python",
+        "version": "python 2.7.6",
+        "compile": false,
+        "runa": "/usr/local/bin/python2.7",
+        "run": "python"
+    }
+}
