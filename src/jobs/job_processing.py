@@ -5,6 +5,7 @@ from collections import namedtuple
 from subprocess import PIPE
 from psutil import Popen
 import os, sys, threading
+from utils.globals import read
 from utils.timer import Timer
 
 MAX_DURATION = 60
@@ -52,7 +53,7 @@ class DynamicLanguage(object):
 
 class Command(object):
 
-    CommandResult = namedtuple('CommandResult', ('process', 'duration'), verbose=False)
+    CommandResult = namedtuple('CommandResult', ('info', 'process', 'duration'), verbose=False)
 
     def __init__(self, args, inn, out, err):
         self.inn_file = inn
@@ -63,8 +64,11 @@ class Command(object):
         self.err = None
 
         self.process = None
+        self.args = args
         self.command = '; '.join(args)
         self.timer = Timer()
+
+        self.info = None
 
     def open_streams(self):
         self.inn = PIPE if self.inn_file is None else open(self.inn_file, "rb")
@@ -85,8 +89,15 @@ class Command(object):
         self.timer.tock()
         self.close_streams()
 
-        # self.process.returncode
-        return Command.CommandResult(process=self.process, duration=self.timer.duration)
+        self.info = dict(
+            command=self.args,
+            returncode=self.process.returncode,
+            error=read(self.err),
+            output=self.out,
+            duration=self.timer.duration,
+        )
+
+        return Command.CommandResult(info=self.info, process=self.process, duration=self.timer.duration)
 
 
 class LanguageProcess(object):
