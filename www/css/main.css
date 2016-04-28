@@ -1,0 +1,60 @@
+.container-fluid {
+  margin-right: auto;
+  margin-left: auto;
+  max-width: 1000px; /* or 950px */
+}
+
+#main-cont {
+  margin-right: auto;
+  margin-left: auto;
+  max-width: 1000px; /* or 950px */
+}
+
+.highlight {
+    border: 3px solid rgba(68, 157, 68, 0.66);
+    padding: 10px;
+}
+input[type=checkbox] {
+    margin: 2px 0 0;
+}
+
+.bigger-checkbox {
+    height: 16px;
+    width: 16px;
+}
+
+textarea.form-control {
+    font-family: Consolas, "Courier new";
+    font-size: 0.75em;
+}
+
+.jumbotron {
+  padding-top: 0;
+}
+
+pre, code {	
+	white-space: nowrap;
+}
+
+
+dl {
+  margin-bottom: 0;
+}
+
+.panel-default {
+  margin-top: 15px;
+}
+
+
+.navbar-nav>li>a {
+  line-height: 13px;
+}
+
+.navbar-nav>li>a small {
+  font-style: italic;
+  opacity: 0.75;
+}
+
+.input-group {
+margin-bottom: 15px;
+}

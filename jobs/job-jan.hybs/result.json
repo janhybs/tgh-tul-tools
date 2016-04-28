@@ -1,0 +1,158 @@
+[
+    {
+        "method": "file-comparison", 
+        "returncode": 0, 
+        "command": [
+            "/home/jan-hybs/Dokumenty/projects/tgh-tul-tools/jobs/job-jan.hybs/main"
+        ], 
+        "input": "/home/jan-hybs/Dokumenty/projects/tgh-tul-tools/problems/TEST/input/case_1.1.in", 
+        "error": "", 
+        "duration": 2.537965774536133, 
+        "output": "/home/jan-hybs/Dokumenty/projects/tgh-tul-tools/jobs/job-jan.hybs/output/case_1.1.out", 
+        "id": "case_1.1", 
+        "result": 1
+    }, 
+    {
+        "method": "file-comparison", 
+        "returncode": 0, 
+        "command": [
+            "/home/jan-hybs/Dokumenty/projects/tgh-tul-tools/jobs/job-jan.hybs/main"
+        ], 
+        "input": "/home/jan-hybs/Dokumenty/projects/tgh-tul-tools/problems/TEST/input/case_1.2.in", 
+        "error": "", 
+        "duration": 1.8460750579833984, 
+        "output": "/home/jan-hybs/Dokumenty/projects/tgh-tul-tools/jobs/job-jan.hybs/output/case_1.2.out", 
+        "id": "case_1.2", 
+        "result": 3
+    }, 
+    {
+        "method": "file-comparison", 
+        "returncode": 0, 
+        "command": [
+            "/home/jan-hybs/Dokumenty/projects/tgh-tul-tools/jobs/job-jan.hybs/main"
+        ], 
+        "input": "/home/jan-hybs/Dokumenty/projects/tgh-tul-tools/problems/TEST/input/case_1.3.in", 
+        "error": "", 
+        "duration": 1.8780231475830078, 
+        "output": "/home/jan-hybs/Dokumenty/projects/tgh-tul-tools/jobs/job-jan.hybs/output/case_1.3.out", 
+        "id": "case_1.3", 
+        "result": 3
+    }, 
+    {
+        "method": "file-comparison", 
+        "returncode": 0, 
+        "command": [
+            "/home/jan-hybs/Dokumenty/projects/tgh-tul-tools/jobs/job-jan.hybs/main"
+        ], 
+        "input": "/home/jan-hybs/Dokumenty/projects/tgh-tul-tools/problems/TEST/input/case_1.4.in", 
+        "error": "", 
+        "duration": 2.3860931396484375, 
+        "output": "/home/jan-hybs/Dokumenty/projects/tgh-tul-tools/jobs/job-jan.hybs/output/case_1.4.out", 
+        "id": "case_1.4", 
+        "result": 3
+    }, 
+    {
+        "method": "file-comparison", 
+        "returncode": 0, 
+        "command": [
+            "/home/jan-hybs/Dokumenty/projects/tgh-tul-tools/jobs/job-jan.hybs/main"
+        ], 
+        "input": "/home/jan-hybs/Dokumenty/projects/tgh-tul-tools/problems/TEST/input/case_1.5.in", 
+        "error": "", 
+        "duration": 1.934051513671875, 
+        "output": "/home/jan-hybs/Dokumenty/projects/tgh-tul-tools/jobs/job-jan.hybs/output/case_1.5.out", 
+        "id": "case_1.5", 
+        "result": 3
+    }, 
+    {
+        "method": "file-comparison", 
+        "returncode": 0, 
+        "command": [
+            "/home/jan-hybs/Dokumenty/projects/tgh-tul-tools/jobs/job-jan.hybs/main"
+        ], 
+        "input": "/home/jan-hybs/Dokumenty/projects/tgh-tul-tools/problems/TEST/input/case_1.6.in", 
+        "error": "", 
+        "duration": 1.817941665649414, 
+        "output": "/home/jan-hybs/Dokumenty/projects/tgh-tul-tools/jobs/job-jan.hybs/output/case_1.6.out", 
+        "id": "case_1.6", 
+        "result": 3
+    }, 
+    {
+        "method": "file-comparison", 
+        "returncode": 0, 
+        "command": [
+            "/home/jan-hybs/Dokumenty/projects/tgh-tul-tools/jobs/job-jan.hybs/main"
+        ], 
+        "input": "/home/jan-hybs/Dokumenty/projects/tgh-tul-tools/problems/TEST/input/case_1.7.in", 
+        "error": "", 
+        "duration": 1.9190311431884766, 
+        "output": "/home/jan-hybs/Dokumenty/projects/tgh-tul-tools/jobs/job-jan.hybs/output/case_1.7.out", 
+        "id": "case_1.7", 
+        "result": 3
+    }, 
+    {
+        "method": "file-comparison", 
+        "returncode": 0, 
+        "command": [
+            "/home/jan-hybs/Dokumenty/projects/tgh-tul-tools/jobs/job-jan.hybs/main"
+        ], 
+        "input": "/home/jan-hybs/Dokumenty/projects/tgh-tul-tools/problems/TEST/input/case_1.8.in", 
+        "error": "", 
+        "duration": 1.8389225006103516, 
+        "output": "/home/jan-hybs/Dokumenty/projects/tgh-tul-tools/jobs/job-jan.hybs/output/case_1.8.out", 
+        "id": "case_1.8", 
+        "result": 3
+    }, 
+    {
+        "method": "file-comparison", 
+        "returncode": 0, 
+        "command": [
+            "/home/jan-hybs/Dokumenty/projects/tgh-tul-tools/jobs/job-jan.hybs/main"
+        ], 
+        "input": "/home/jan-hybs/Dokumenty/projects/tgh-tul-tools/problems/TEST/input/case_1.9.in", 
+        "error": "", 
+        "duration": 1.9130706787109375, 
+        "output": "/home/jan-hybs/Dokumenty/projects/tgh-tul-tools/jobs/job-jan.hybs/output/case_1.9.out", 
+        "id": "case_1.9", 
+        "result": 3
+    }, 
+    {
+        "method": "file-comparison", 
+        "returncode": 0, 
+        "command": [
+            "/home/jan-hybs/Dokumenty/projects/tgh-tul-tools/jobs/job-jan.hybs/main"
+        ], 
+        "input": "/home/jan-hybs/Dokumenty/projects/tgh-tul-tools/problems/TEST/input/case_1.10.in", 
+        "error": "", 
+        "duration": 1.9350051879882812, 
+        "output": "/home/jan-hybs/Dokumenty/projects/tgh-tul-tools/jobs/job-jan.hybs/output/case_1.10.out", 
+        "id": "case_1.10", 
+        "result": 3
+    }, 
+    {
+        "method": "file-comparison", 
+        "returncode": 0, 
+        "command": [
+            "/home/jan-hybs/Dokumenty/projects/tgh-tul-tools/jobs/job-jan.hybs/main"
+        ], 
+        "input": "/home/jan-hybs/Dokumenty/projects/tgh-tul-tools/problems/TEST/input/case_2.1.in", 
+        "error": "", 
+        "duration": 1.9829273223876953, 
+        "output": "/home/jan-hybs/Dokumenty/projects/tgh-tul-tools/jobs/job-jan.hybs/output/case_2.1.out", 
+        "id": "case_2.1", 
+        "result": 1
+    }, 
+    {
+        "method": "file-comparison", 
+        "returncode": 0, 
+        "command": [
+            "/home/jan-hybs/Dokumenty/projects/tgh-tul-tools/jobs/job-jan.hybs/main"
+        ], 
+        "input": "/home/jan-hybs/Dokumenty/projects/tgh-tul-tools/problems/TEST/input/1.in", 
+        "error": "", 
+        "duration": 2.007007598876953, 
+        "output": "/home/jan-hybs/Dokumenty/projects/tgh-tul-tools/jobs/job-jan.hybs/output/1.out", 
+        "id": "1", 
+        "result": 3
+    }
+]
