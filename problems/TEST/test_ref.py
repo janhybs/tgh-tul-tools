@@ -4,6 +4,7 @@
 
 from optparse import OptionParser
 from random import randint
+import random
 import os, sys, json
 
 
@@ -14,6 +15,10 @@ parser.add_option("-r", dest="rand", action="store_true", default=False, help="U
 
 options, args = parser.parse_args()
 
+random.seed(1234)
+
+if options.rand:
+    random.seed()
 
 if options.size is not None:
     for i in range(int(options.size)):
