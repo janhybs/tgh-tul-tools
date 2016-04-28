@@ -34,6 +34,7 @@ class JobRequest(object):
 
         self.result_file = os.path.join(self.root, 'result.json')
         self.output_root = os.path.join(self.root, 'output')
+        self.delete_me_file = os.path.join(self.root, '.delete-me')
 
     def __repr__(self):
         return '{ref}solution "{self.problem.id}" from "{self.username}"'.format(self=self, ref='reference ' if self.reference else '')

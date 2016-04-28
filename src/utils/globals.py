@@ -12,6 +12,7 @@ class Config(object):
     root = None
     config_dir = None
 
+
 class Langs(object):
     items = {}
 

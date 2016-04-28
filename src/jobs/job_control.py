@@ -10,12 +10,47 @@ from utils.logger import Logger
 
 class JobResult(object):
     OK = 0
-    COMPILE_ERROR = 1
-    RUN_ERROR = 2
-    RUN_OK = 3
-    WRONG_OUTPUT = 4
-    CORRECT_OUTPUT = 5
-    UNKNOWN_ERROR = 6
+    RUN_OK = 0
+
+    CORRECT_OUTPUT = 1
+    WRONG_OUTPUT = 3
+
+    COMPILE_ERROR = 10
+    RUN_ERROR = 20
+    UNKNOWN_ERROR = 100
+
+    _dict1 = dict()
+    _dict2 = dict()
+
+    @staticmethod
+    def reverse1(code):
+        if not JobResult._dict1:
+            JobResult._dict1[JobResult.CORRECT_OUTPUT] = 'A'
+            JobResult._dict1[JobResult.WRONG_OUTPUT] = 'W'
+
+            JobResult._dict1[JobResult.UNKNOWN_ERROR] = 'E'
+            JobResult._dict1[JobResult.COMPILE_ERROR] = 'E'
+            JobResult._dict1[JobResult.RUN_ERROR] = 'E'
+
+            JobResult._dict1[JobResult.RUN_OK] = 'O'
+            JobResult._dict1[JobResult.OK] = 'O'
+
+        return JobResult._dict1.get(code, 'E')
+
+    @staticmethod
+    def reverse2(code):
+        if not JobResult._dict2:
+            JobResult._dict2[JobResult.CORRECT_OUTPUT] = 'OK'
+            JobResult._dict2[JobResult.WRONG_OUTPUT] = 'ER'
+
+            JobResult._dict2[JobResult.UNKNOWN_ERROR] = 'ER'
+            JobResult._dict2[JobResult.COMPILE_ERROR] = 'ER'
+            JobResult._dict2[JobResult.RUN_ERROR] = 'ER'
+
+            JobResult._dict2[JobResult.RUN_OK] = 'OK'
+            JobResult._dict2[JobResult.OK] = 'OK'
+
+        return JobResult._dict2.get(code, 'ER')
 
 
 class JobControl(object):
@@ -70,6 +105,15 @@ class StudentJob(object):
         out_file = os.path.join(self.r.root, 'output', '{}.out'.format(case_id))
         err_file = os.path.join(self.r.root, 'output', '{}.err'.format(case_id))
 
+        if not os.path.exists(inn_file):
+            Logger.instance().warning('    {} Input file does not exists {}'.format(case_id, inn_file))
+            info = dict()
+            info['id'] = case_id
+            info['result'] = JobResult.UNKNOWN_ERROR
+            info['duration'] = 0
+            info['error'] = '{} Input file does not exists {}'.format(case_id, inn_file)
+            return info
+
         run_args = self.module.run()
         run_command = Command(run_args, inn_file, out_file, err_file)
         run_result = run_command.run()
@@ -77,28 +121,21 @@ class StudentJob(object):
         # run error
         if run_result.exit != 0:
             info = run_result.info
+            info['id'] = case_id
             info['result'] = JobResult.RUN_ERROR
             Logger.instance().debug('    {} error while execution'.format(case_id))
             return info
 
         # run ok
         info = run_result.info
+        info['id'] = case_id
         info['result'] = JobResult.RUN_OK
         remove_empty(err_file)
 
-        #
+        # run ref script to test solution's output
         if not self.r.problem.multiple_solution:
-            compare_result = compare(ref_out_file, out_file)
-            if compare_result:
-                info['result'] = JobResult.CORRECT_OUTPUT
-                info['method'] = 'file-comparison'
-                Logger.instance().debug('    {} correct output[F]'.format(case_id))
-                return info
-            else:
-                info['result'] = JobResult.WRONG_OUTPUT
-                info['method'] = 'file-comparison'
-                Logger.instance().debug('    {} wrong output[F]'.format(case_id))
-                return info
+            compare_result = self.compare(info, case_id, ref_out_file, out_file)
+            return compare_result
         else:
             comp_result = self.reference.test_solution(case_id)
             info['result'] = comp_result['result']
@@ -119,6 +156,27 @@ class StudentJob(object):
             # generating reference output
             result.append(self._static(input_spec, case_id))
         return result
+
+    def compare(self, info, case_id, a, b):
+        info['id'] = case_id
+        try:
+            compare_result = compare(a, b)
+            if compare_result:
+                info['result'] = JobResult.CORRECT_OUTPUT
+                info['method'] = 'file-comparison'
+                Logger.instance().debug('    {} correct output[F]'.format(case_id))
+                return info
+            else:
+                info['result'] = JobResult.WRONG_OUTPUT
+                info['method'] = 'file-comparison'
+                Logger.instance().debug('    {} wrong output[F]'.format(case_id))
+                return info
+        except Exception as e:
+                info['result'] = JobResult.UNKNOWN_ERROR
+                info['method'] = 'file-comparison'
+                info['error'] = str(e)
+                info['details'] = 'Error during file comparison'
+                return info
 
     def prepare_solution(self):
         if self.module is not None:
@@ -201,6 +259,7 @@ class ReferenceJob(object):
             # run ok
             info = run_result.info
             info['result'] = JobResult.RUN_OK
+            info['id'] = case_id
             result.append(info)
             remove_empty(err_file)
             Logger.instance().debug('    {} input file generated'.format(case_id))
@@ -227,12 +286,14 @@ class ReferenceJob(object):
         if run_result.exit != 0:
             info = run_result.info
             info['result'] = JobResult.RUN_ERROR
+            info['id'] = case_id
             Logger.instance().debug('    {} error while generating output file'.format(case_id))
             return info
 
         # run ok
         info = run_result.info
         info['result'] = JobResult.RUN_OK
+        info['id'] = case_id
         remove_empty(err_file)
         Logger.instance().debug('    {} output file created'.format(case_id))
 

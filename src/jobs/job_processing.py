@@ -5,7 +5,7 @@ from collections import namedtuple
 from subprocess import PIPE
 from psutil import Popen
 import os, sys, threading
-from utils.globals import read, ensure_path
+from utils.globals import read, ensure_path, Config
 from utils.timer import Timer
 
 MAX_DURATION = 60
@@ -42,10 +42,9 @@ class DynamicLanguage(object):
 
     @staticmethod
     def _generate_ref_request(request):
-        from jobs.job_control import JobControl
         from jobs.job_request import JobRequest
         return JobRequest(dict(
-            root=os.path.join(JobControl.root, 'problems', request.problem.id),
+            root=os.path.join(Config.problems, request.problem.id),
             filename=request.problem.ref_script,
             lang_id=request.problem.ref_lang.id
         ))
@@ -99,10 +98,10 @@ class Command(object):
             error=read(self.err_file),
             output=self.out_file,
             input=self.inn_file,
-            duration=self.timer.duration,
+            duration=self.timer.duration*1000,
         )
 
-        return Command.CommandResult(exit=self.process.returncode, info=self.info, process=self.process, duration=self.timer.duration)
+        return Command.CommandResult(exit=self.process.returncode, info=self.info, process=self.process, duration=self.timer.duration*1000)
 
 
 class LanguageProcess(object):
