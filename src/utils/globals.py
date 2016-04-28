@@ -5,11 +5,19 @@
 import json, os
 
 
+class Config(object):
+    watch_dir = None
+    problems = None
+    data = None
+    root = None
+    config_dir = None
+
 class Langs(object):
     items = {}
 
     @classmethod
     def init(cls, f):
+        from jobs.job_request import Lang
         with open(f, 'r') as fp:
             items = json.load(fp)
             for k, v in items.items():
@@ -29,6 +37,7 @@ class Problems(object):
 
     @classmethod
     def init(cls, f):
+        from jobs.job_request import Problem
         with open(f, 'r') as fp:
             items = json.load(fp)
             for k, v in items.items():
@@ -41,36 +50,6 @@ class Problems(object):
         :rtype : Problem
         """
         return cls.items.get(id, None)
-
-
-class Lang(object):
-    def __init__(self, o={}):
-        self.id = o.get('id', None)
-        self.extension = o.get('extension', None)
-        self.name = o.get('name', None)
-        self.version = o.get('version', None)
-        self.compile = o.get('compile', None)
-        self.run = o.get('run', None)
-
-
-class Problem(object):
-    def __init__(self, o={}):
-        self.id = o.get("id", None)
-        self.name = o.get("name", None)
-        self.ref_script = o.get("ref_script", None)
-        self.ref_lang = Langs.get(o.get("ref_lang", None))
-        self.multiple_solution = o.get("multiple_solution", None)
-        self.problem_size_descritption = o.get("problem_size_descritption", None)
-        self.input = [ProblemInput(p) for p in o.get("input", [])]
-
-
-class ProblemInput(object):
-    def __init__(self, o={}):
-        self.id = o.get('id', None)
-        self.time = o.get('time', None)
-        self.problem_size = o.get('problem_size', None)
-        self.random = o.get('random', None)
-        self.dynamic = self.problem_size is not None or self.random is not None
 
 
 class ProcessException(Exception):
@@ -109,7 +88,6 @@ def ensure_path(f, is_file=True):
 
 def compare(a, b):
     result = None
-    eof = False
     with open(a, 'rb') as f1, open(b, 'rb') as f2:
         while True:
 
@@ -133,3 +111,11 @@ def compare(a, b):
                 break
 
     return True if result == 0 else False
+
+
+def tryjson(f):
+    content = read(f)
+    try:
+        return json.loads(content)
+    except Exception as e:
+        return content

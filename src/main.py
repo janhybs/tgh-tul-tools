@@ -5,51 +5,98 @@ import json
 
 import os
 import sys
-import time
-from jobs.job_control import JobControl
+from jobs.job_control import JobControl, JobResult
 from jobs.job_request import JobRequest
+from utils import plucklib
 
 from utils.daemon import Daemon
-from utils.globals import Langs, Problems
+from utils.globals import Langs, Problems, ProcessException, Config, ensure_path
+from utils.logger import Logger
+from subprocess import call, check_output
 
 
 class TGHProcessor(Daemon):
-    def __init__(self, watch_dir='.', root='.'):
+    def __init__(self, config_json='.'):
         super(TGHProcessor, self).__init__(name='tgh-processor', pidfile='/tmp/tgh-processor')
-        self.watch_dir = watch_dir
-        self.root = os.path.abspath(root)
-        self.config_dir = os.path.join(root, 'config')
+
+        with open(config_json, 'r') as fp:
+            self.config = json.load(fp)
+
+        Config.watch_dir = self.config['jobs']
+        Config.problems = self.config['problems']
+        Config.data = self.config['data']
+        Config.root = self.config['root']
+        Config.config_dir = self.config['config']
 
     def get_jobs(self, filter=None):
         """
-
         :rtype : list[jobs.job_request.JobRequest]
         """
-        jobs = os.listdir(self.watch_dir)
+        jobs = os.listdir(Config.watch_dir)
         jobs = [j for j in jobs if j.startswith('job-')]
-        jobs = [os.path.join(self.watch_dir, j) for j in jobs]
+        jobs = [os.path.join(Config.watch_dir, j) for j in jobs]
         jobs = [j for j in jobs if os.path.isdir(j)]
         jobs = [j for j in jobs if 'config.json' in os.listdir(j)]
+        jobs = [j for j in jobs if '.delete-me' in os.listdir(j)]
 
         json_jobs = [JobRequest(os.path.join(j, 'config.json')) for j in jobs]
 
         return json_jobs
 
     def run(self):
-        Langs.init(os.path.join(self.config_dir, 'langs.json'))
-        Problems.init(os.path.join(self.config_dir, 'problems.json'))
-        JobControl.root = self.root
+        Langs.init(os.path.join(Config.config_dir, 'langs.json'))
+        Problems.init(os.path.join(Config.config_dir, 'problems.json'))
+
         # while True:
         jobs = self.get_jobs()
-        for job in jobs:
-            JobControl.process(job)
+        if jobs:
+            Logger.instance().debug('{} job/s found'.format(len(jobs)))
+            for job in jobs:
+                Logger.instance().debug('Processing {}'.format(job))
+                try:
+                    result = JobControl.process(job)
+                except ProcessException as e:
+                    result = dict(
+                        result=0
+                    )
+                    result = [result]
+                except Exception as e:
+                    result = dict(
+                        result=JobResult.UNKNOWN_ERROR,
+                        error=str(e),
+                    )
+                    result = [result]
 
-            # time.sleep(5)
+                # call(['cp', '-r', job.output_root])
+                self.save_result(job, result)
+                # time.sleep(5)
+        else:
+            Logger.instance().debug('no jobs found')
+
+    def save_result(self, job, result):
+        # copy files
+        user_dir = os.path.join(Config.data, job.nameuser, job.problem.id)
+        attempts = os.listdir(user_dir)
+        ensure_path(user_dir, is_file=False)
+
+        attempt_no = [int(x.split(".")[0]) for x in attempts] or [0]
+        next_attempt = max(attempt_no) + 1
+
+        dest_dir = os.path.join(user_dir, '{:02d}-{}-{}'.format(next_attempt, job.username, self.get_result_letter(result)))
+        print dest_dir
+
+        # # save results
+        # result_json = json.dumps(result, indent=4)
+        # with open(job.result_file, 'w') as fp:
+        #     fp.write(result_json)
+
+    def get_result_letter(self, result):
+        max_result = max(plucklib.pluck(result, 'result'))
 
 
 def usage(msg=''):
     if msg: print msg
-    print 'usage: main.py start|stop|restart|debug <watch_dir> <root>'
+    print 'usage: main.py start|stop|restart|debug <config.json>'
     sys.exit(1)
 
 if __name__ == "__main__":
@@ -62,27 +109,25 @@ if __name__ == "__main__":
         usage('Invalid action')
 
     if action in ('start', 'restart', 'debug'):
-        if len(args) < 2: usage('Missing <watch_dir> arg')
-        if len(args) < 3: usage('Missing <root> arg')
-        watch_dir = os.path.abspath(args[1])
-        root = os.path.abspath(args[2])
+        if len(args) < 2: usage('Missing <config.json> arg')
+        config_json = os.path.abspath(args[2])
 
-        processor = TGHProcessor(watch_dir=watch_dir, root=root)
+        processor = TGHProcessor(config_json=config_json)
         if action == 'debug':
-            print 'Debugging service'
+            Logger.instance().info('Debugging service')
             processor.run()
             sys.exit(0)
 
         if action == 'restart':
-            print 'Stopping service...'
+            Logger.instance().info('Stopping service...')
             processor.stop()
-        print 'Watching dir "{:s}"'.format(watch_dir)
+        Logger.instance().info('Watching dir "{:s}"'.format(Config.watch_dir))
         processor.start()
         sys.exit(0)
 
     if action == 'stop':
         processor = TGHProcessor()
-        print 'Stopping service...'
+        Logger.instance().info('Stopping service...')
         processor.stop()
         sys.exit(0)
 

@@ -3,10 +3,15 @@
 # author:   Jan Hybs
 
 import json, os, sys, datetime
-from utils.globals import Langs, Problems
+from utils.globals import Langs
+from utils.globals import Problems
 
 
 class JobRequest(object):
+    """
+    :type problem: Problem
+    :type lang   : Lang
+    """
     def __init__(self, request_file):
         if type(request_file) is dict:
             request = request_file
@@ -15,6 +20,7 @@ class JobRequest(object):
                 request = json.load(fp)
 
         self.username = request.get('username', None)
+        self.nameuser = request.get('nameuser', None)
         self.reference = request.get('reference', None)
         self.timestamp = datetime.datetime.fromtimestamp(request.get('timestamp', 0))
         self.root = request.get('root', None)
@@ -25,3 +31,48 @@ class JobRequest(object):
 
         self.lang = Langs.get(request.get('lang_id', None))
         self.problem = Problems.get(request.get('problem_id', None))
+
+        self.result_file = os.path.join(self.root, 'result.json')
+        self.output_root = os.path.join(self.root, 'output')
+
+    def __repr__(self):
+        return '{ref}solution "{self.problem.id}" from "{self.username}"'.format(self=self, ref='reference ' if self.reference else '')
+
+
+class Lang(object):
+    def __init__(self, o={}):
+        self.id = o.get('id', None)
+        self.extension = o.get('extension', None)
+        self.name = o.get('name', None)
+        self.version = o.get('version', None)
+        self.compile = o.get('compile', None)
+        self.run = o.get('run', None)
+
+
+class Problem(object):
+    def __init__(self, o={}):
+        self.id = o.get("id", None)
+        self.name = o.get("name", None)
+        self.ref_script = o.get("ref_script", None)
+        self.ref_lang = Langs.get(o.get("ref_lang", None))
+        self.multiple_solution = o.get("multiple_solution", None)
+        self.problem_size_description = o.get("problem_size_description", None)
+        self.input = [ProblemInput(p) for p in o.get("input", [])]
+
+
+class ProblemInput(object):
+    def __init__(self, o={}):
+        self.id = o.get('id', None)
+        self.time = o.get('time', None)
+        self.problem_size = o.get('problem_size', None)
+        self.random = o.get('random', None)
+        self.dynamic = self.problem_size is not None or self.random is not None
+        self.cases = o.get('cases', 10 if self.random else 1)
+
+    def __repr__(self):
+        if self.dynamic:
+            return 'Dynamic solution {rnd} random having {self.cases} case/s'.format(
+                self=self,
+                rnd='with' if self.random else 'without'
+            )
+        return 'Static solution'
