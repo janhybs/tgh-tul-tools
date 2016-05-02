@@ -84,14 +84,12 @@ class StudentJob(object):
 
     def process(self):
         self.prepare_solution()
-        case_id = 0
         results = list()
         for input_spec in self.r.problem.input:
-            case_id += 1
-            Logger.instance().debug('  {case_id}: {input_spec}'.format(case_id=case_id, input_spec=input_spec))
+            Logger.instance().debug('  {case_id}: {input_spec}'.format(case_id=input_spec.id, input_spec=input_spec))
             if input_spec.dynamic:
                 results.extend(
-                    self._dynamic(input_spec, case_id)
+                    self._dynamic(input_spec)
                 )
             else:
                 results.append(
@@ -108,46 +106,46 @@ class StudentJob(object):
         out_file = os.path.join(self.r.root, 'output', '{}.out'.format(case_id))
         err_file = os.path.join(self.r.root, 'output', '{}.err'.format(case_id))
 
+        result_base = dict(info=input_spec.dict().copy())
+
         if not os.path.exists(inn_file):
             Logger.instance().warning('    {} Input file does not exists {}'.format(case_id, inn_file))
-            info = dict()
-            info['id'] = case_id
-            info['result'] = JobResult.UNKNOWN_ERROR
-            info['duration'] = 0
-            info['error'] = '{} Input file does not exists {}'.format(case_id, inn_file)
-            return info
+            result_base['result'] = JobResult.UNKNOWN_ERROR
+            result_base['duration'] = 0
+            result_base['error'] = '{} Input file does not exists {}'.format(case_id, inn_file)
+            return result_base
 
         run_args = self.module.run()
         run_command = Command(run_args, inn_file, out_file, err_file)
         run_result = run_command.run()
 
+        result_base.update(run_result.info)
+        result_base['info']['id'] = case_id
+        result_base['command'] = run_args[-1] if len(run_args) > 0 else '<no command>'
+
         # run error
         if run_result.exit != 0:
-            info = run_result.info
-            info['id'] = case_id
-            info['result'] = JobResult.RUN_ERROR
+            result_base['result'] = JobResult.RUN_ERROR
             Logger.instance().debug('    {} error while execution'.format(case_id))
-            return info
+            return result_base
 
         # run ok
-        info = run_result.info
-        info['id'] = case_id
-        info['result'] = JobResult.RUN_OK
+        result_base['result'] = JobResult.RUN_OK
         remove_empty(err_file)
 
         # run ref script to test solution's output
         if not self.r.problem.multiple_solution:
-            compare_result = self.compare(info, case_id, ref_out_file, out_file)
+            compare_result = self.compare(result_base, case_id, ref_out_file, out_file)
             return compare_result
         else:
             comp_result = self.reference.test_solution(case_id)
-            info['result'] = comp_result['result']
-            info['output'] = comp_result['output']
-            info['method'] = comp_result['method']
+            result_base['result'] = comp_result['result']
+            result_base['comparison'] = comp_result['comparison']
+            result_base['method'] = comp_result['method']
 
-        return info
+        return result_base
 
-    def _dynamic(self, input_spec, i):
+    def _dynamic(self, input_spec):
         """
         :type input_spec: jobs.job_request.ProblemInput
         """
@@ -155,13 +153,12 @@ class StudentJob(object):
         result = list()
 
         for c in range(1, cases + 1):
-            case_id = 'case_{}.{}'.format(i, c)
+            case_id = '{}.{}'.format(input_spec.id, c)
             # generating reference output
             result.append(self._static(input_spec, case_id))
         return result
 
     def compare(self, info, case_id, a, b):
-        info['id'] = case_id
         try:
             compare_result = compare(a, b)
             if compare_result:
@@ -220,13 +217,11 @@ class ReferenceJob(object):
     def process(self):
         self.prepare_reference()
         results = list()
-        case_id = 0
         for input_spec in self.r.problem.input:
-            case_id += 1
-            Logger.instance().debug('  {case_id}: {input_spec}'.format(case_id=case_id, input_spec=input_spec))
+            Logger.instance().debug('  {case_id}: {input_spec}'.format(case_id=input_spec.id, input_spec=input_spec))
             if input_spec.dynamic:
                 results.extend(
-                    self._dynamic(input_spec, case_id)
+                    self._dynamic(input_spec)
                 )
             else:
                 results.append(
@@ -234,7 +229,7 @@ class ReferenceJob(object):
                 )
         return results
 
-    def _dynamic(self, input_spec, i):
+    def _dynamic(self, input_spec):
         """
         :type input_spec: jobs.job_request.ProblemInput
         """
@@ -242,7 +237,7 @@ class ReferenceJob(object):
         result = list()
 
         for c in range(1, cases + 1):
-            case_id = 'case_{}.{}'.format(i, c)
+            case_id = '{}.{}'.format(input_spec.id, c)
             inn_file = None
             out_file = os.path.join(self.program_root, 'input', '{}.in'.format(case_id))
             err_file = os.path.join(self.program_root, 'input', '{}.err'.format(case_id))
@@ -251,20 +246,23 @@ class ReferenceJob(object):
             run_command = Command(run_args, inn_file, out_file, err_file)
             run_result = run_command.run()
 
+            result_base = dict(
+                info=input_spec.dict().copy(),
+                command=run_args[-1] if len(run_args) > 0 else '<no command>'
+            )
+            result_base.update(run_result.info)
+            result_base['info']['id'] = case_id
+
             # run error
             if run_result.exit != 0:
-                info = run_result.info
-                info['id'] = case_id
-                info['result'] = JobResult.RUN_ERROR
-                result.append(info)
+                result_base['result'] = JobResult.RUN_ERROR
+                result.append(result_base)
                 Logger.instance().debug('    {} error while generating input file'.format(case_id))
                 continue
 
             # run ok
-            info = run_result.info
-            info['result'] = JobResult.RUN_OK
-            info['id'] = case_id
-            result.append(info)
+            result_base['result'] = JobResult.RUN_OK
+            result.append(result_base)
             remove_empty(err_file)
             Logger.instance().debug('    {} input file generated'.format(case_id))
 
@@ -286,22 +284,25 @@ class ReferenceJob(object):
         run_command = Command(run_args, inn_file, out_file, err_file)
         run_result = run_command.run()
 
+        result_base = dict(
+            info=input_spec.dict().copy(),
+            command=run_args[-1] if len(run_args) > 0 else '<no command>'
+        )
+        result_base.update(run_result.info)
+        result_base['info']['id'] = case_id
+
         # run error
         if run_result.exit != 0:
-            info = run_result.info
-            info['result'] = JobResult.RUN_ERROR
-            info['id'] = case_id
+            result_base['result'] = JobResult.RUN_ERROR
             Logger.instance().debug('    {} error while generating output file'.format(case_id))
-            return info
+            return result_base
 
         # run ok
-        info = run_result.info
-        info['result'] = JobResult.RUN_OK
-        info['id'] = case_id
+        result_base['result'] = JobResult.RUN_OK
         remove_empty(err_file)
         Logger.instance().debug('    {} output file created'.format(case_id))
 
-        return info
+        return result_base
 
     def prepare_reference(self):
         """
@@ -345,8 +346,8 @@ class ReferenceJob(object):
         if run_result.exit != 0:
             info = run_result.info
             info['result'] = JobResult.WRONG_OUTPUT
-            info['method'] = 'script'
-            info['output'] = tryjson(out_file)
+            info['method'] = 'ref-script'
+            info['comparison'] = tryjson(out_file)
             Logger.instance().debug('    {} wrong output[S]'.format(case_id))
             remove_empty(out_file)
             remove_empty(err_file)
@@ -354,8 +355,8 @@ class ReferenceJob(object):
         else:
             info = run_result.info
             info['result'] = JobResult.WRONG_OUTPUT
-            info['method'] = 'script'
-            info['output'] = tryjson(out_file)
+            info['method'] = 'ref-script'
+            info['comparison'] = tryjson(out_file)
             Logger.instance().debug('    {} correct output[S]'.format(case_id))
             remove_empty(out_file)
             remove_empty(err_file)

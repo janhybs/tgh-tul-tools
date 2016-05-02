@@ -77,3 +77,10 @@ class ProblemInput(object):
                 rnd='with' if self.random else 'without'
             )
         return 'Static solution'
+
+    def dict(self):
+        return dict(
+            id=self.id,
+            problem_size=self.problem_size,
+            random=self.random
+        )
