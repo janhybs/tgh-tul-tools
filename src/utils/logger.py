@@ -46,18 +46,21 @@ class Logger(object):
         stream_logger = logging.StreamHandler()
         stream_logger.setLevel(stream_level)
         stream_logger.setFormatter(fmt)
-
-        file_logger = logging.FileHandler(f)
-        file_logger.setLevel(file_level)
-        file_logger.setFormatter(fmt)
-
         self.logger.addHandler(stream_logger)
-        self.logger.addHandler(file_logger)
+        
+        try:
+            file_logger = logging.FileHandler(f)
+            file_logger.setLevel(file_level)
+            file_logger.setFormatter(fmt)
+            self.logger.addHandler(file_logger)
 
-        # add empty lines if file contains some previous logs
-        if os.stat(f).st_size != 0:
-            with open(f, 'a+') as fp:
-                fp.write('\n' * 3)
+            # add empty lines if file contains some previous logs
+            if os.stat(f).st_size != 0:
+                with open(f, 'a+') as fp:
+                    fp.write('\n' * 3)
+        except Exception as e:
+            print e
+        
         # start logging
         self.info("{:%d-%m-%Y %H:%M:%S}".format(datetime.datetime.now()))
 
