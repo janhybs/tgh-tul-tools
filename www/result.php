@@ -214,7 +214,7 @@ if (SERVICE_DEBUG)
                                         echo ": " . @$res->error;
                                     if (!empty($res->comparison)) {
                                         if (is_object(@$res->comparison)) {
-                                            echo json_encode(@$res->comparison, JSON_PRETTY_PRINT);
+                                            echo defined('JSON_PRETTY_PRINT') ? json_encode(@$res->comparison, JSON_PRETTY_PRINT) : json_encode(@$res->comparison);
                                         }else{
                                             print_r(@$res->comparison);
                                         }
