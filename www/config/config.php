@@ -2,16 +2,15 @@
 
 // define ('ROOT', realpath($_SERVER["DOCUMENT_ROOT"]));
 // define ('SERVER_ROOT', 'http://tgh.nti.tul.cz');
+// $config = file_get_contents(ROOT . '/config/config-tgh.json');
+
 
 define ('ROOT', realpath($_SERVER["DOCUMENT_ROOT"]) . '/test/tgh');
 define ('SERVER_ROOT', 'http://hybs.nti.tul.cz/test/tgh');
-
-// $config = file_get_contents(ROOT . '/config/config-tgh.json');
-
 $config = file_get_contents(ROOT . '/config/config-hybs.json');
+
+
 $jsonConfig = json_decode($config);
-
-
 define ('JOBS_ROOT',    $jsonConfig->jobs);
 define ('DATA_ROOT',    $jsonConfig->data);
 define ('PROBLEM_ROOT', $jsonConfig->problems);
@@ -28,7 +27,8 @@ class JobResult {
     const UNKNOWN_ERROR     = 100;
 }
 
-// define ('ALLOWED_USERS', serialize (array('jan.hybs', 'jan.brezina', 'jiri.hnidek', 'superego')));
+# debug purpose
+# define ('ALLOWED_USERS', serialize (array('jan.hybs', 'jan.brezina', 'jiri.hnidek', 'superego')));
 define ('REFERENCE_USERS', serialize (
       array(
         'jan.hybs',
