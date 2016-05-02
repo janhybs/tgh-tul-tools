@@ -49,6 +49,10 @@ $serviceWatchdog = $status->watchdog;
             <span class="sr-only">...</span>
           </div>
         </div>
+        
+        <br />
+        
+        <h2>Debug info</h2>
         <code>
           <pre><?php print_r($GLOBALS); ?></pre>
         </code>
