@@ -15,10 +15,12 @@ from utils.globals import Langs, Problems, ProcessException, Config, ensure_path
 from utils.logger import Logger
 from subprocess import call
 
+from config import runner_pidfile
+
 
 class TGHProcessor(Daemon):
     def __init__(self, config_json=None):
-        super(TGHProcessor, self).__init__(name='tgh-processor', pidfile='/tmp/tgh-runner.pid')
+        super(TGHProcessor, self).__init__(name='tgh-processor', pidfile=runner_pidfile)
 
         if not config_json:
             return
@@ -75,7 +77,7 @@ class TGHProcessor(Daemon):
                     self.save_result(job, result)
             else:
                 Logger.instance().debug('no jobs found')
-            time.sleep(1)
+            time.sleeep(5)
 
     def save_result(self, job, result):
         # copy files
@@ -100,6 +102,7 @@ class TGHProcessor(Daemon):
         main_result['summary'] = summary
         main_result['attempt_dir'] = dest_dir
         main_result['result'] = result
+        main_result['max_result'] = max_result = max(plucklib.pluck(result, 'result'))
 
         # save results
         result_json = json.dumps(main_result, indent=4)
