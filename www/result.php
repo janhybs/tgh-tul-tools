@@ -160,9 +160,7 @@ if (SERVICE_DEBUG)
 
         <div class="alert alert-success" role="alert" id="output-holder" style="display: block;">
           <strong id="output-header">Probíhá zpracování úlohy</strong>
-            <pre id="output">
-              <code class="nohighlight">
-              <?php 
+            <pre id="output"><code class="nohighlight"><?php 
                 // ob_implicit_flush(1);
                 // ob_start();
                 ob_flush();
@@ -173,10 +171,8 @@ if (SERVICE_DEBUG)
                 // print_r($result);
                 print ("<code id='result-summary'>$result->summary</code>");
                 print ("<span id='exit-code' style='display: none;'>$result->max_result</span>");
-                
              ?>
-           </code>
-         </pre>
+           </code></pre>
        </div>
 
 
