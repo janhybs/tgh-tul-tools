@@ -42,11 +42,6 @@ function mkdirs ($location, $mode = 0774) {
     umask ($old); 
 }
 
-
-function runService () {
-    @file_put_contents('/var/www/html/tgh.nti.tul.cz/jobs/watchdog', 'delete-me');
-}
-
 function getServiceStatus() {
     $pidRunner          = intval(@file_get_contents('/tmp/tgh-runner.pid'));
     $pidRunner_         = intval(exec ("ps -p $pidRunner -o pid,state --no-headers"));

@@ -1,0 +1,23 @@
+#!/bin/bash
+# TGH watchdog control shell script
+
+
+# PYTHON_BIN="/usr/local/bin/python2.7"
+# SERVICE_BIN="/etc/tgh-tul-tools/src/watchdog.py"
+
+PYTHON_BIN="python"
+SERVICE_BIN="/home/jan-hybs/Dokumenty/projects/tgh-tul-tools/src/watchdog.py"
+
+if [ $# -eq 0 ]
+  then
+    echo "No arguments supplied"
+    echo "usage: tgh-watchdog start|stop|restart|debug"
+    exit 1
+fi
+
+# execute command
+action=$1
+cmd="${PYTHON_BIN} ${SERVICE_BIN} ${action}"
+
+echo "Running: '${cmd}'"
+$cmd

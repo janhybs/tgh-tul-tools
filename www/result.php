@@ -82,9 +82,9 @@ $status = getServiceStatus();
     <title>TGH - zpracování</title>
 
     <!-- Bootstrap -->
-    <link href="../css/bootstrap.min.css" rel="stylesheet">
-    <link href="../styles/default.css" rel="stylesheet" >
-    <link href="../css/main.css" rel="stylesheet">
+    <link href="<?php echo SERVER_ROOT;?>/css/bootstrap.min.css" rel="stylesheet">
+    <link href="<?php echo SERVER_ROOT;?>/css/styles/default.css" rel="stylesheet" >
+    <link href="<?php echo SERVER_ROOT;?>/css/main.css" rel="stylesheet">
 
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -104,7 +104,7 @@ $status = getServiceStatus();
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand" href="<?php echo SERVER_ROOT; ?>">TGH</a>
+          <a class="navbar-brand" href="<?php echo SERVER_ROOT;?>">TGH</a>
         </div>
 
         <!-- Collect the nav links, forms, and other content for toggling -->
@@ -207,13 +207,12 @@ $status = getServiceStatus();
       </div>
     </footer>
 
-
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-    <script type="text/javascript" src="../js/jquery-2.1.3.min.js"></script>
-    <script type="text/javascript" src="../js/bootstrap.min.js"></script>
-    <script type="text/javascript" src="../js/highlight.pack.js"></script>
+    <script type="text/javascript" src="<?php echo SERVER_ROOT;?>/js/jquery-2.1.3.min.js"></script>
+    <script type="text/javascript" src="<?php echo SERVER_ROOT;?>/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="<?php echo SERVER_ROOT;?>/js/highlight.pack.js"></script>
     <script type="text/javascript">hljs.initHighlighting()</script>
-    <script type="text/javascript" src="../js/res.js"></script>
+    <script type="text/javascript" src="<?php echo SERVER_ROOT;?>/js/res.js"></script>
 
   </body>
 </html>

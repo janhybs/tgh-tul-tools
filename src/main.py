@@ -15,7 +15,7 @@ from utils.globals import Langs, Problems, ProcessException, Config, ensure_path
 from utils.logger import Logger
 from subprocess import call
 
-from config import runner_pidfile
+from config import runner_pidfile, runner_sleep
 
 
 class TGHProcessor(Daemon):
@@ -31,7 +31,6 @@ class TGHProcessor(Daemon):
         Config.watch_dir = self.config['jobs']
         Config.problems = self.config['problems']
         Config.data = self.config['data']
-        Config.root = self.config['root']
         Config.config_dir = self.config['config']
 
     @staticmethod
@@ -77,7 +76,7 @@ class TGHProcessor(Daemon):
                     self.save_result(job, result)
             else:
                 Logger.instance().debug('no jobs found')
-            time.sleeep(5)
+            time.sleep(runner_sleep)
 
     def save_result(self, job, result):
         # copy files

@@ -7,7 +7,7 @@ from subprocess import Popen, PIPE
 from optparse import OptionParser
 import os, sys, getpass, time
 
-from config import watchdog_pidfile, runner_pidfile, run_service
+from config import watchdog_pidfile, runner_pidfile, run_service, watchdog_sleep
 
 
 class TGHWatchDogDaemon(Daemon):
@@ -29,8 +29,8 @@ class TGHWatchDogDaemon(Daemon):
                 print out, err
 
             # sleep for 5 sec
-            print 'sleeping'
-            time.sleep(15)
+            print 'sleeping {} sec'.format(watchdog_sleep)
+            time.sleep(watchdog_sleep)
 
 
 if __name__ == "__main__":
@@ -41,9 +41,7 @@ if __name__ == "__main__":
     print 'Running as "{}"'.format(getpass.getuser())
     print 'Watching file "{}"'.format(runner_pidfile)
 
-    # daemon = TGHWatchDogDaemon(runner_pidfile, pidfile=watchdog_pidfile, name='TGH-watchdog-D', stdout='/home/jan-hybs/Dokumenty/projects/tgh-tul-tools/src/out.log')
-    l = '/home/jan-hybs/Dokumenty/projects/tgh-tul-tools/src/out.log'
-    daemon = TGHWatchDogDaemon(runner_pidfile, pidfile=watchdog_pidfile, name='TGH-watchdog-D', stdout=l, stderr=l)
+    daemon = TGHWatchDogDaemon(runner_pidfile, pidfile=watchdog_pidfile, name='TGH-watchdog-D')
     if not args:
         parser.print_usage()
         exit(1)

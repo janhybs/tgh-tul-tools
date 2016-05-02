@@ -1,4 +1,5 @@
 <?php session_start();
+define('HAS_INDEX', TRUE);
 
 require_once ("../config/config.php");
 require_once (ROOT . "/libs.php");
@@ -17,9 +18,9 @@ $serviceWatchdog = $status->watchdog;
     <title>TGH - odevzdání řešení</title>
 
     <!-- Bootstrap -->
-    <link href="../css/bootstrap.min.css" rel="stylesheet">
-    <link href="../css/main.css" rel="stylesheet">
-    <link href="../styles/default.css" rel="stylesheet" >
+    <link href="<?php echo SERVER_ROOT;?>/css/bootstrap.min.css" rel="stylesheet">
+    <link href="<?php echo SERVER_ROOT;?>/css/main.css" rel="stylesheet">
+    <link href="<?php echo SERVER_ROOT;?>/css/styles/default.css" rel="stylesheet" >
 
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -66,13 +67,9 @@ $serviceWatchdog = $status->watchdog;
   </body>
       
 
-
-
-
-
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-    <script src="/js/jquery-2.1.3.min.js"></script>
-    <script src="/js/bootstrap.min.js"></script>
-    <script src="/js/highlight.pack.js"></script>
-    <script src="/js/main.js"></script>
+    <script src="<?php echo SERVER_ROOT;?>/js/jquery-2.1.3.min.js"></script>
+    <script src="<?php echo SERVER_ROOT;?>/js/bootstrap.min.js"></script>
+    <script src="<?php echo SERVER_ROOT;?>/js/highlight.pack.js"></script>
+    <script src="<?php echo SERVER_ROOT;?>/js/main.js"></script>
 </html>

@@ -3,7 +3,9 @@
 # author:   Jan Hybs
 # 
 
+runner_sleep =      10 # 10 sec sleep
+watchdog_sleep =    30 # 30 sec sleep
+
 runner_pidfile =    '/tmp/tgh-runner.pid'
 watchdog_pidfile =  '/tmp/tgh-watchdog.pid'
-
-run_service =       'python /home/jan-hybs/Dokumenty/projects/tgh-tul-tools/src/main.py start /home/jan-hybs/Dokumenty/projects/tgh-tul-tools/config/config.json'
+run_service =       'tgh-service restart'
