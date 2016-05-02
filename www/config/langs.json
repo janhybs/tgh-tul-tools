@@ -54,7 +54,6 @@
         "name": "Python",
         "version": "python 2.7.6",
         "compile": false,
-        "runa": "/usr/local/bin/python2.7",
-        "run": "python"
+        "run": "/usr/local/bin/python2.7",
     }
 }
