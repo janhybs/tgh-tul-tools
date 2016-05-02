@@ -1,8 +1,46 @@
 {
+    "WEBISL": {
+        "id": "WEBISL",
+        "name": "Web islands",
+        "ref_script": "webisl.cpp",
+        "ref_lang": "CPP",
+        "multiple_solution": false,
+        "problem_size_description": "",
+        "input": [
+            {
+                "id": "WEBISL_0",
+                "time": 60
+            },
+            {
+                "id": "WEBISL_1",
+                "time": 60
+            },
+            {
+                "id": "WEBISL_2",
+                "time": 60
+            },
+            {
+                "id": "WEBISL_3",
+                "time": 60
+            },
+            {
+                "id": "WEBISL_4",
+                "time": 60
+            },
+            {
+                "problem_size": 4,
+                "random": true
+            },
+            {
+                "problem_size": 6,
+                "random": false
+            }
+        ]
+    },
     "ELECTRIC": {
         "id": "ELECTRIC",
         "name": "Eletrika",
-        "ref_script": "..\/generic",
+        "ref_script": "../generic",
         "input": [
             {
                 "id": "ELECTRIC_1",
@@ -17,7 +55,7 @@
     "IDOS": {
         "id": "IDOS",
         "name": "IDOS",
-        "ref_script": "..\/generic",
+        "ref_script": "../generic",
         "input": [
             {
                 "id": "IDOS_1",
@@ -32,7 +70,7 @@
     "MINOS": {
         "id": "MINOS",
         "name": "Bludiste",
-        "ref_script": "..\/generic",
+        "ref_script": "../generic",
         "input": [
             {
                 "id": "MINOS_1",
@@ -59,7 +97,7 @@
     "RELCONN": {
         "id": "RELCONN",
         "name": "Nejspolehlivejsi cesta",
-        "ref_script": "..\/generic",
+        "ref_script": "../generic",
         "input": [
             {
                 "id": "RELCONN_1",
@@ -67,37 +105,10 @@
             }
         ]
     },
-    "WEBISL": {
-        "id": "WEBISL",
-        "name": "Web islands",
-        "ref_script": "..\/generic",
-        "input": [
-            {
-                "id": "WEBISL_0",
-                "time": 60
-            },
-            {
-                "id": "WEBISL_1",
-                "time": 60
-            },
-            {
-                "id": "WEBISL_2",
-                "time": 60
-            },
-            {
-                "id": "WEBISL_3",
-                "time": 60
-            },
-            {
-                "id": "WEBISL_4",
-                "time": 60
-            }
-        ]
-    },
     "SEGMENT": {
         "id": "SEGMENT",
         "name": "Segmentace obrazu",
-        "ref_script": "..\/generic",
+        "ref_script": "../generic",
         "input": [
             {
                 "id": "SEGMENT_1",

@@ -149,7 +149,7 @@ function showLogout ($user) {
 
 function getFileSizeString ($filename) {
     $size = @filesize ($filename);
-    if ($size === FALSE)
+    if ($size === FALSE || !is_file($filename))
         return 'file does not exists';
 
     if ($size === 0)

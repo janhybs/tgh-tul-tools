@@ -4,7 +4,6 @@ define ('ROOT', realpath($_SERVER["DOCUMENT_ROOT"]));
 define ('SERVER_ROOT', 'https://tgh.nti.tul.cz');
 $config = file_get_contents(ROOT . '/config/config-tgh.json');
 
-
 // define ('ROOT', realpath($_SERVER["DOCUMENT_ROOT"]) . '/test/tgh');
 // define ('SERVER_ROOT', 'http://hybs.nti.tul.cz/test/tgh');
 // $config = file_get_contents(ROOT . '/config/config-hybs.json');
@@ -17,6 +16,7 @@ define ('PROBLEM_ROOT', $jsonConfig->problems);
 define ('CONFIG_ROOT',  $jsonConfig->config);
 
 
+define('SERVICE_DEBUG', TRUE);
 define('MAX_WAIT_TIME', 65);
 
 class JobResult {
