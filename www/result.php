@@ -67,6 +67,8 @@ file_put_contents("$jobInfo->root/.delete-me", 'Python will delete me!');
 
 # get service statuses
 $status = getServiceStatus();
+if (SERVICE_DEBUG)
+    $status->runner = TRUE;
 
 // ob_end_flush();
 // ob_start();
@@ -180,17 +182,22 @@ $status = getServiceStatus();
           <div class="btn-group" role="group" aria-label="..." id="output-download">
             <?php
             $i = 0;
-            foreach ($result->result as $res) {
-                $res_output = $res->output;
+            foreach (@$result->result as $res) {
+                $res_output = @$res->output;
                 // print $res_output
                 // print str_replace($jobInfo->root, $result->attempt_dir, $res_output) . "<br>";
-                $dataPath = get_data_path($res_output, $result->attempt_dir);
+                if ($ref) {
+                    $dataPath = @$res->output;
+                } else {
+                    $dataPath = get_data_path(@$res_output, @$result->attempt_dir);
+                }
+                
                 $size = getFileSizeString($dataPath);
                 
                 // $serverpath = join_paths ($resultDir, $output->path);
                 // $wwwpath = str_replace (ROOT, '', $dataPath);
                 $wwwpath = path2url($dataPath);
-                $cls = $res->result <= JobResult::CORRECT_OUTPUT ? 'success' : 'danger';
+                $cls = @$res->result <= JobResult::CORRECT_OUTPUT ? 'success' : 'danger';
                 printf ("<a href='%s' class='btn btn-%s'>výstup sady %02d <br />%s</a>", $wwwpath, $cls, ++$i, getFileSizeString($dataPath));
             }
             ?>

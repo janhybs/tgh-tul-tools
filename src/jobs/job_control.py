@@ -4,7 +4,7 @@
 
 import os, sys, json
 from jobs.job_processing import DynamicLanguage, Command, LangMap
-from utils.globals import ProcessException, remove_empty, compare, read, tryjson, Config
+from utils.globals import ProcessException, remove_empty, compare, read, tryjson, Config, ensure_path
 from utils.logger import Logger
 
 
@@ -61,6 +61,9 @@ class JobControl(object):
         """
         :type request: jobs.job_request.JobRequest
         """
+        ensure_path(os.path.join(request.root, 'output'), False)
+        print os.path.join(request.root, 'output')
+        
         if request.reference:
             job = ReferenceJob(request)
         else:
@@ -251,6 +254,7 @@ class ReferenceJob(object):
             # run error
             if run_result.exit != 0:
                 info = run_result.info
+                info['id'] = case_id
                 info['result'] = JobResult.RUN_ERROR
                 result.append(info)
                 Logger.instance().debug('    {} error while generating input file'.format(case_id))
