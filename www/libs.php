@@ -95,13 +95,9 @@ function waitForResult ($job) {
     //     throw new Exception('Processing service and Watchdog services are both dead. Please contact <a href="mailto:jan.hybs@tul.cz">jan.hybs</a> to make them work again');
     // }
     
-    if (!$serviceStatus->runner) {
-        runService();
-        throw new Exception('');
-    }
     
     # wait for file to get deleted
-    while($time < 10) {
+    while($time < MAX_WAIT_TIME) {
         if (!file_exists($lockFile) && file_exists($resultFile)) {
             $graceful = TRUE;
             break;

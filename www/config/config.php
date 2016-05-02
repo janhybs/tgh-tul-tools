@@ -16,6 +16,9 @@ define ('DATA_ROOT',    $jsonConfig->data);
 define ('PROBLEM_ROOT', $jsonConfig->problems);
 define ('CONFIG_ROOT',  $jsonConfig->config);
 
+
+define('MAX_WAIT_TIME', 65);
+
 class JobResult {
     const OK                = 0;
     const RUN_OK            = 0;
