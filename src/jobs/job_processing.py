@@ -2,8 +2,7 @@
 # -*- coding: utf-8 -*-
 # author:   Jan Hybs
 from collections import namedtuple
-from subprocess import PIPE
-from psutil import Popen
+from subprocess import PIPE, Popen
 import os, sys, threading
 from utils.globals import read, ensure_path, Config
 from utils.timer import Timer
