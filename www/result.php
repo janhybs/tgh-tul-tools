@@ -6,7 +6,6 @@ require_once (ROOT . "/libs.php");
 
 $user = auth () or die ();
 
-
 $languages = getLanguages();
 $problems = getProblems();
 $canRef = user_allowed_reference($user);
@@ -160,44 +159,75 @@ if (SERVICE_DEBUG)
 
         <div class="alert alert-success" role="alert" id="output-holder" style="display: block;">
           <strong id="output-header">Probíhá zpracování úlohy</strong>
-            <pre id="output"><code class="nohighlight"><?php 
+            <?php 
                 // ob_implicit_flush(1);
                 // ob_start();
                 ob_flush();
                 flush();
                 
                 $result = waitForResult($jobInfo);
-                cleanJobFiles($jobInfo);
+                // cleanJobFiles($jobInfo);
                 // print_r($result);
-                print ("<code id='result-summary'>$result->summary</code>");
+                // print ("<code id='result-summary'>$result->summary</code>");
                 print ("<span id='exit-code' style='display: none;'>$result->max_result</span>");
              ?>
-           </code></pre>
+             <table class="table table-striped table-hover">
+               <tr>
+                 <th>sada</th>
+                 <th>result</th>
+                 <th>duration</th>
+                 <th>io</th>
+                 <th>details</th>
+               </tr>
+               <?php foreach (@$result->result as $res):
+                    $cls = @$res->result <= JobResult::CORRECT_OUTPUT ? ' class="success"' : ' class="danger"';
+                    ?>
+                   <tr<?php echo $cls?>>
+                     <td><?php echo @$res->info->id; ?></td>
+                     <td><?php echo JobResult::toString(@$res->result); ?></td>
+                     <td><?php printf("%1.3f ms", @$res->duration); ?></td>
+                     <td>
+                         <div class="btn-group" role="group" aria-label="...">
+                         <?php if(@$res->input): ?>
+                           <a target="_blank" class="btn btn-default" href="<?php echo path2url(@$res->input);?>">I</a>
+                         <?php else: ?>
+                            <a target="_blank" class="btn btn-default disabled" href="">I</a>
+                         <?php endif; ?>
+                         
+                           <a target="_blank" class="btn btn-default" href="<?php echo path2url(get_data_path(@$res->output, @$result->attempt_dir));?>">O</a>
+                         </div>
+                     </td>
+                     <td><?php 
+                            if ($ref) {
+                                if (@$res->info->problem_size) {
+                                    echo " -p ";
+                                    echo @$res->info->problem_size;
+                                    if (@$res->info->random) {
+                                        echo " -r";
+                                    }
+                                }
+                            } else {
+                                if (@$res->result >= JobResult::CORRECT_OUTPUT) {
+                                    echo "<pre>";
+                                    echo @$res->method;
+                                    if (!empty(@$res->error))
+                                        echo ": " . @$res->error;
+                                    if (!empty(@$res->comparison)) {
+                                        if (is_object(@$res->comparison)) {
+                                            echo json_encode(@$res->comparison, JSON_PRETTY_PRINT);
+                                        }else{
+                                            print_r(@$res->comparison);
+                                        }
+                                        echo "</pre>";
+                                    }
+                                }
+                            }
+                         ?>
+                    </td>
+                   </tr>
+               <?php endforeach; ?>
+             </table>
        </div>
-
-
-          <div class="btn-group" role="group" aria-label="..." id="output-download">
-            <?php
-            foreach (@$result->result as $res) {
-                $res_output = @$res->output;
-                // print $res_output
-                // print str_replace($jobInfo->root, $result->attempt_dir, $res_output) . "<br>";
-                if ($ref) {
-                    $dataPath = @$res->output;
-                } else {
-                    $dataPath = get_data_path(@$res_output, @$result->attempt_dir);
-                }
-                
-                $size = getFileSizeString($dataPath);
-                
-                // $serverpath = join_paths ($resultDir, $output->path);
-                // $wwwpath = str_replace (ROOT, '', $dataPath);
-                $wwwpath = path2url($dataPath);
-                $cls = @$res->result <= JobResult::CORRECT_OUTPUT ? 'success' : 'danger';
-                printf ("<a href='%s' class='btn btn-%s'>sada '%s' <br />%s</a>", $wwwpath, $cls, @$res->id, getFileSizeString($dataPath));
-            }
-            ?>
-          </div>
       </div>
     </div>
 

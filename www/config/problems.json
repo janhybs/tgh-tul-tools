@@ -28,10 +28,12 @@
                 "time": 60
             },
             {
+                "id": "WEBISL_5",
                 "problem_size": 4,
                 "random": true
             },
             {
+                "id": "WEBISL_6",
                 "problem_size": 6,
                 "random": false
             }
@@ -125,14 +127,16 @@
         "name": "pokusná úloha",
         "ref_script": "test_ref.py",
         "ref_lang": "PYTHON27",
-        "multiple_solution": false,
+        "multiple_solution": true,
         "problem_size_description": "",
         "input": [
             {
+                "id": "WEBISL_1",
                 "problem_size": 5,
                 "random": true
             },
             {
+                "id": "WEBISL_2",
                 "problem_size": 150,
                 "random": false
             },

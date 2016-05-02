@@ -27,7 +27,7 @@ $( document ).ready(
         }
 
         outputHolder.removeClass ('alert-success');
-        outputHolder.addClass (cls);
+        // outputHolder.addClass (cls);
         outputHeader.html (msg);
 
         processing.hide (opts);
