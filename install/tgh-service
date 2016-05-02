@@ -3,7 +3,7 @@
 
 PYTHON_BIN="/usr/local/bin/python2.7"
 SERVICE_BIN="/etc/tgh-tul-tools/src/main.py"
-CONFIG_FILE="/etc/tgh-tul-tools/config/config.json"
+CONFIG_FILE="/etc/tgh-tul-tools/www/config/config-tgh.json"
 LIMIT_USER="tgh-worker"
 
 # PYTHON_BIN="python"
