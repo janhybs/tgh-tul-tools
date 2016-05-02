@@ -1,12 +1,14 @@
 <?php
 
 // define ('ROOT', realpath($_SERVER["DOCUMENT_ROOT"]));
+// define ('SERVER_ROOT', 'http://tgh.nti.tul.cz');
+
 define ('ROOT', realpath($_SERVER["DOCUMENT_ROOT"]) . '/test/tgh');
 define ('SERVER_ROOT', 'http://hybs.nti.tul.cz/test/tgh');
-define ('RUN_RUNNER_SERVICE', 'python /home/jan-hybs/Dokumenty/projects/tgh-tul-tools/src/main.py start /home/jan-hybs/Dokumenty/projects/tgh-tul-tools/config/config.json');
-// define ('RUN_RUNNER_SERVICE', 'whoami');
 
-$config = file_get_contents(ROOT . '/config/config.json');
+// $config = file_get_contents(ROOT . '/config/config-tgh.json');
+
+$config = file_get_contents(ROOT . '/config/config-hybs.json');
 $jsonConfig = json_decode($config);
 
 
