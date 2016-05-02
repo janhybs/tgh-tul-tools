@@ -247,7 +247,7 @@ class ReferenceJob(object):
             out_file = os.path.join(self.program_root, 'input', '{}.in'.format(case_id))
             err_file = os.path.join(self.program_root, 'input', '{}.err'.format(case_id))
 
-            run_args = self.module.run(prepare=c, random=input_spec.random)
+            run_args = self.module.run(prepare=input_spec.problem_size, random=input_spec.random)
             run_command = Command(run_args, inn_file, out_file, err_file)
             run_result = run_command.run()
 

@@ -130,8 +130,9 @@ class TGHProcessor(Daemon):
         summary.append('')
 
         for res in result:
+            print res
             res_code = JobResult.reverse2(res['result'])
-            summary.append(u'  [{}] sada {res[id]:20s} {res[duration]:6.3f} ms'.format(res_code, res=res, job=job))
+            summary.append(u'  [{}] sada {res[id]:20s} {res[duration]:10.3f} ms'.format(res_code, res=res, job=job))
 
             if res['result'] in (JobResult.COMPILE_ERROR, JobResult.RUN_ERROR, JobResult.UNKNOWN_ERROR):
                 summary.append('    Error: {res[error]}'.format(res=res))

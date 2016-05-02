@@ -169,6 +169,7 @@ if (SERVICE_DEBUG)
                 flush();
                 
                 $result = waitForResult($jobInfo);
+                cleanJobFiles($jobInfo);
                 // print_r($result);
                 print ("<code id='result-summary'>$result->summary</code>");
                 print ("<span id='exit-code' style='display: none;'>$result->max_result</span>");
@@ -181,7 +182,6 @@ if (SERVICE_DEBUG)
 
           <div class="btn-group" role="group" aria-label="..." id="output-download">
             <?php
-            $i = 0;
             foreach (@$result->result as $res) {
                 $res_output = @$res->output;
                 // print $res_output
@@ -198,7 +198,7 @@ if (SERVICE_DEBUG)
                 // $wwwpath = str_replace (ROOT, '', $dataPath);
                 $wwwpath = path2url($dataPath);
                 $cls = @$res->result <= JobResult::CORRECT_OUTPUT ? 'success' : 'danger';
-                printf ("<a href='%s' class='btn btn-%s'>výstup sady %02d <br />%s</a>", $wwwpath, $cls, ++$i, getFileSizeString($dataPath));
+                printf ("<a href='%s' class='btn btn-%s'>sada '%s' <br />%s</a>", $wwwpath, $cls, @$res->id, getFileSizeString($dataPath));
             }
             ?>
           </div>
