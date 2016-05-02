@@ -3,7 +3,7 @@
 # author:   Jan Hybs
 # 
 
-runner_sleep =      10 # 10 sec sleep
+runner_sleep =      5 # 10 sec sleep
 watchdog_sleep =    30 # 30 sec sleep
 
 runner_pidfile =    '/tmp/tgh-runner.pid'

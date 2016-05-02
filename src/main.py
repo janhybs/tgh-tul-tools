@@ -56,9 +56,9 @@ class TGHProcessor(Daemon):
         while True:
             jobs = self.get_jobs()
             if jobs:
-                Logger.instance().debug('{} job/s found'.format(len(jobs)))
+                Logger.instance().info('{} job/s found'.format(len(jobs)))
                 for job in jobs:
-                    Logger.instance().debug('Processing {}'.format(job))
+                    Logger.instance().info('Processing {}'.format(job))
                     try:
                         # delete file to let PHP now we are working on it
                         os.unlink(job.delete_me_file)

@@ -11,7 +11,7 @@ import sys, os
 class Logger(object):
     _global_logger = None
     stream_level = logging.DEBUG
-    file_level = logging.DEBUG
+    file_level = logging.INFO
 
     @staticmethod
     def instance():
