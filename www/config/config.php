@@ -15,7 +15,6 @@ define ('JOBS_ROOT',    $jsonConfig->jobs);
 define ('DATA_ROOT',    $jsonConfig->data);
 define ('PROBLEM_ROOT', $jsonConfig->problems);
 define ('CONFIG_ROOT',  $jsonConfig->config);
-define ('PYTHON_PATH',  'python2.7');
 
 class JobResult {
     const OK                = 0;
