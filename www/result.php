@@ -1,4 +1,5 @@
 <?php session_start();
+define('HAS_INDEX', TRUE);
 
 require_once ("./config/config.php");
 require_once (ROOT . "/libs.php");

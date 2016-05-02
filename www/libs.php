@@ -1,4 +1,5 @@
 <?php
+if (!defined('HAS_INDEX')) die('Forbidden to this page directly.');
 
 function auth () {
     # no session? go to login section

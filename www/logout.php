@@ -1,4 +1,6 @@
 <?php session_start();
+if (!defined('HAS_INDEX')) die('Forbidden to this page directly.');
+
 
 // Unset all of the session variables.
 $_SESSION = array();
