@@ -16,7 +16,7 @@ chmod +x tgh-watchdog
 
 # allow access to data folder only devs and apache
 chmod -R 770           ../www/data
-chown -R www-data      ../www/data
+chown -R apache        ../www/data
 chgrp -R devs          ../www/data
 chown -R root          ../www/data/.readme.md
 
