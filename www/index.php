@@ -132,10 +132,10 @@ if (empty($prefferedSource))  $prefferedSource    = @$history->source;
             </div>
             
             <?php if(user_allowed_reference($user)): ?>
-            <div class="form-group highlight checkbox">
+            <div class="form-group highlight">
+                <input type="submit" class="btn btn-success btn-large" value="Spustit referenční řešení" name="reference-solution" id="reference-solution"/>
                 <label for="reference-solution">
-                    <input name="reference-solution" type="checkbox" class="bigger-checkbox" id="reference-solution">
-                    Referenční řešení
+                    Spustí referenční řešení úlohy a vygeneruje vstupní a výstupní soubory
                 </label>
             </div>
             <?php endif;?>

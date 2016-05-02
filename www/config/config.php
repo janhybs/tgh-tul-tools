@@ -27,6 +27,17 @@ class JobResult {
     const COMPILE_ERROR     = 10;
     const RUN_ERROR         = 20;
     const UNKNOWN_ERROR     = 100;
+    
+    public static function toString($value) {
+        if ($value == JobResult::OK) return 'OK';
+        if ($value == JobResult::RUN_OK) return 'OK';
+        if ($value == JobResult::CORRECT_OUTPUT) return 'Správný výstup';
+        if ($value == JobResult::WRONG_OUTPUT) return 'Chybný výstup';
+        if ($value == JobResult::COMPILE_ERROR) return 'Chyba při kompilaci';
+        if ($value == JobResult::RUN_ERROR) return 'Chyba při běhu';
+        return 'Neznámá chyba';
+        
+    }
 }
 
 # debug purpose

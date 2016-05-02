@@ -15,14 +15,20 @@ class Config(object):
 
 class Langs(object):
     items = {}
-
+    json_file = None
+    
     @classmethod
-    def init(cls, f):
+    def reload(cls):
         from jobs.job_request import Lang
-        with open(f, 'r') as fp:
+        with open(cls.json_file, 'r') as fp:
             items = json.load(fp)
             for k, v in items.items():
                 cls.items[k] = Lang(v)
+
+    @classmethod
+    def init(cls, f):
+        cls.json_file = f
+        cls.reload()
 
 
     @classmethod
@@ -35,14 +41,21 @@ class Langs(object):
 
 class Problems(object):
     items = {}
-
+    json_file = None
+    
     @classmethod
-    def init(cls, f):
+    def reload(cls):
         from jobs.job_request import Problem
-        with open(f, 'r') as fp:
+
+        with open(cls.json_file, 'r') as fp:
             items = json.load(fp)
             for k, v in items.items():
                 cls.items[k] = Problem(v)
+
+    @classmethod
+    def init(cls, f):
+        cls.json_file = f
+        cls.reload()
 
 
     @classmethod

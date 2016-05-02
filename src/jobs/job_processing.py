@@ -92,7 +92,6 @@ class Command(object):
         self.close_streams()
 
         self.info = dict(
-            command=self.args,
             returncode=self.process.returncode,
             error=read(self.err_file),
             output=self.out_file,

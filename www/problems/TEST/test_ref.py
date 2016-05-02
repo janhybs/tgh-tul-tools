@@ -49,7 +49,7 @@ if options.validate is not None:
         result = {
             'result': 'error',
             'details': 'invalid output file structure',
-            'difference': float("inf")
+            'difference': -1
         }
         print json.dumps(result, indent=4)
         sys.exit(1)
