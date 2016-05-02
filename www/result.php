@@ -210,9 +210,9 @@ if (SERVICE_DEBUG)
                                 if (@$res->result >= JobResult::CORRECT_OUTPUT) {
                                     echo "<pre>";
                                     echo @$res->method;
-                                    if (!empty(@$res->error))
+                                    if (!empty($res->error))
                                         echo ": " . @$res->error;
-                                    if (!empty(@$res->comparison)) {
+                                    if (!empty($res->comparison)) {
                                         if (is_object(@$res->comparison)) {
                                             echo json_encode(@$res->comparison, JSON_PRETTY_PRINT);
                                         }else{
