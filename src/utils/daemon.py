@@ -18,6 +18,10 @@ class Daemon(object):
         self.stdout = stdout
         self.stderr = stderr
         self.pidfile = pidfile
+    
+    def debug(self):
+        print 'Debugging service "{self.name}" ({self.pidfile})'.format(self=self)
+        self.run()
        
     def daemonize(self):
         """
