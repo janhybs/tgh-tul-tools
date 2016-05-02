@@ -58,7 +58,10 @@ if (empty($prefferedSource))  $prefferedSource    = @$history->source;
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand" href="/">TGH</a>
+          <a class="navbar-brand" href="<?php echo SERVER_ROOT;?>/">TGH</a>
+          <?php if(user_allowed_reference($user)): ?>
+          <a class="navbar-brand" href="<?php echo SERVER_ROOT;?>/status">STATUS</a>
+          <?php endif;?>
         </div>
 
         <!-- Collect the nav links, forms, and other content for toggling -->
@@ -66,7 +69,7 @@ if (empty($prefferedSource))  $prefferedSource    = @$history->source;
           <ul class="nav navbar-nav">
           </ul>
           <ul class="nav navbar-nav navbar-right">
-            <li><a href="/logout"><?php showLogout ($user); ?></a></li>
+            <li><a href="<?php echo SERVER_ROOT;?>/logout"><?php showLogout ($user); ?></a></li>
           </ul>
         </div><!-- /.navbar-collapse -->
       </div><!-- /.container-fluid -->
@@ -104,7 +107,7 @@ if (empty($prefferedSource))  $prefferedSource    = @$history->source;
                     <?php echo $prefferedProblem; endforeach; ?>
 
                 </select>
-                <a href="http://tgh.nti.tul.cz/problems/" class="btn btn-success btn-large input-group-addon active problem-url" data-prefix="http://tgh.nti.tul.cz/problems/" target="_blank">
+                <a href="<?php echo SERVER_ROOT;?>/problems/" class="btn btn-success btn-large input-group-addon active problem-url" data-prefix="<?php echo SERVER_ROOT;?>/problems/" target="_blank">
                     <span class="glyphicon glyphicon-link" aria-hidden="true"></span>
                     Otevřít zadání pro úlohu
                     <strong class="problem-name"></strong>
@@ -134,7 +137,7 @@ if (empty($prefferedSource))  $prefferedSource    = @$history->source;
                     <input name="reference-solution" type="checkbox" class="bigger-checkbox" id="reference-solution">
                     Referenční řešení
                 </label>
-          </div>
+            </div>
             <?php endif;?>
 
             <div class="input-group" id="source-code-example-holder" style="display: none;">
