@@ -4,16 +4,46 @@
   max-width: 1000px; /* or 950px */
 }
 
+.alert-danger a {
+  color: #a94442;
+}
+
+.alert.info p {
+  font-size: 1em;
+}
+
 #main-cont {
   margin-right: auto;
   margin-left: auto;
   max-width: 1000px; /* or 950px */
 }
 
+#result-summary .result-ok {
+  color: #FFF;
+  background: #009800;
+  padding: 2px;
+  border-radius: 2px;
+}
+
+#result-summary .result-error {
+  color: #FFF;
+  background: #CE0000;
+  padding: 2px;
+  border-radius: 2px;
+}
+
+.highlight label{ 
+  font-weight: bold;
+  color: #398439;
+}
+
 .highlight {
-    border: 3px solid rgba(68, 157, 68, 0.66);
+    border: 3px solid rgba(64, 149, 64, 0.73);
+    background: #dff0d8;
+    border-radius: 4px;
     padding: 10px;
 }
+
 input[type=checkbox] {
     margin: 2px 0 0;
 }
@@ -32,7 +62,7 @@ textarea.form-control {
   padding-top: 0;
 }
 
-pre, code {	
+.nowrap {	
 	white-space: nowrap;
 }
 

@@ -9,22 +9,20 @@ $user = auth () or die ();
 $errors = array(
     'lang' => 'Nepodporovaný programovací jazyk',
     'problem' => 'Neznámá úloha',
-    'perm' => 'Nedostaečná oprávnění'
+    'perm' => 'Nedostatečná oprávnění k odevzdání referenčního řešení'
 );
 $error = @$errors[@$_GET['e']];
 
+# try to get values from GET method and then from SESSION
 $prefferedProblem   = @$_GET['p'];
 $prefferedLang      = @$_GET['l'];
 $prefferedSource    = @$_GET['s'];
 
-# history flag overrides
-if (isset($_GET['h'])) {
-    $history = @$_SESSION['history'];
-    $prefferedProblem   = @$history->problem;
-    $prefferedLang      = @$history->lang;
-    $prefferedSource    = @$history->source;
-}
-
+# test empty GET args and use SESSION instead
+$history = @$_SESSION['history'];
+if (empty($prefferedProblem)) $prefferedProblem   = @$history->problem;
+if (empty($prefferedLang))    $prefferedLang      = @$history->lang;
+if (empty($prefferedSource))  $prefferedSource    = @$history->source;
 ?>
 
 <!DOCTYPE html>
@@ -102,7 +100,7 @@ if (isset($_GET['h'])) {
 
                     <?php foreach (getProblems() as $problem): ?>
                     <option value="<?php echo $problem->id; ?>"<?php echo (strcmp($problem->id, $prefferedProblem) === 0 ? ' selected="selected"' : ''); ?>><?php echo $problem->name; ?></option>
-                    <?php endforeach; ?>
+                    <?php echo $prefferedProblem; endforeach; ?>
 
                 </select>
                 <a href="http://tgh.nti.tul.cz/problems/" class="btn btn-success btn-large input-group-addon active problem-url" data-prefix="http://tgh.nti.tul.cz/problems/" target="_blank">

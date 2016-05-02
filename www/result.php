@@ -27,21 +27,21 @@ $_SESSION['history'] = $history;
 
 
 if (! isset ($_POST['selected-language'], $_POST['selected-problem'], $_POST['source-code']))
-  header("Location: /");
+  redirect("");
 
 # language check
 if (!isset($languages->$lang))
-    header("Location: /?e=lang");
+    redirect("?e=lang");
 $langInfo = (object)$languages->$lang;
 
 # problem check
 if (!isset($problems->$problem))
-    header("Location: /?e=problem");
+    redirect("?e=problem");
 $problemInfo = (object)$problems->$problem;
 
 # permission check
 if(!$canRef && $ref) {
-    header("Location: /?e=perm");    
+    redirect('?e=perm');
 }
 
 # prepare job request
@@ -64,6 +64,8 @@ file_put_contents("$jobInfo->root/" . $jobInfo->filename, $source);
 file_put_contents("$jobInfo->root/config.json", $jsonInfo);
 file_put_contents("$jobInfo->root/.delete-me", 'Python will delete me!');
 
+# get service statuses
+$status = getServiceStatus();
 
 // ob_end_flush();
 // ob_start();
@@ -101,7 +103,7 @@ file_put_contents("$jobInfo->root/.delete-me", 'Python will delete me!');
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand" href="/">TGH</a>
+          <a class="navbar-brand" href="<?php echo SERVER_ROOT; ?>">TGH</a>
         </div>
 
         <!-- Collect the nav links, forms, and other content for toggling -->
@@ -117,12 +119,33 @@ file_put_contents("$jobInfo->root/.delete-me", 'Python will delete me!');
 
     <div class="jumbotron">
       <div class="container" id="main-cont">
-        <h1><a href='/?h' title="Upravit zdrojový kód" class="btn btn-default btn-lg">
+        <h1><a href='<?php echo SERVER_ROOT; ?>' title="Upravit zdrojový kód" class="btn btn-default btn-lg">
               <span class="glyphicon glyphicon-chevron-left" aria-hidden="true">
             </a>
             TGH <small data-prefix=" úloha " class="problem-name"><?php echo $problemInfo->id; ?></small>
         </h1>
 
+
+        <?php if (!$status->runner): ?>
+          <?php
+            cleanJobFiles($jobInfo);
+          ?>
+          <div class="has-error">
+              <h4>Služba pro zpracování neběží</h4>
+              <div class="alert alert-danger info" role="alert">
+                <p>
+                    Služba, která slouží pro zpracování odevzdaných řešení neběží a vyžaduje
+                     restart. Celý proces restartování může trvat až několik minut.
+                </p>
+                <p>
+                    Zkuste prosím zaslat řešení znovu za pár minut a pokud bude problém přetrvávat, 
+                    kontaktuje <a class="alert-link" href="mailto:jan.hybs@tul.cz?subject=TGH-service-down">jan.hybs(at)tul.cz</a>
+                </p>
+              </div>
+            </div>
+          <h4>Odevzdaný zdrojový kód</h4>
+          <pre><?php echo $source; ?></pre>
+        <?php else: ?>
 
         <div class="well" id="processing">Probíhá zpracování...
           <div class="progress">
@@ -132,22 +155,25 @@ file_put_contents("$jobInfo->root/.delete-me", 'Python will delete me!');
           </div>
         </div>
 
-        <!-- <pre id="code"><code class="<?php echo $langInfo->id; ?>"><?php echo $source; ?></code></pre> -->
-
-
         <div class="alert alert-success" role="alert" id="output-holder" style="display: block;">
-          <strong id="output-header"></strong>
-          <pre id="output"><code class="nohighlight"><?php 
-              // ob_implicit_flush(1);
-              // ob_start();
-              ob_flush();
-              flush();
-              
-              $result = waitForResult($jobInfo);
-              print ("<span id='exit-code' style='display: block;'>$result->summary</span>");
-              
-           ?></code></pre>
-         </div>
+          <strong id="output-header">Probíhá zpracování úlohy</strong>
+            <pre id="output">
+              <code class="nohighlight">
+              <?php 
+                // ob_implicit_flush(1);
+                // ob_start();
+                ob_flush();
+                flush();
+                
+                $result = waitForResult($jobInfo);
+                // print_r($result);
+                print ("<code id='result-summary'>$result->summary</code>");
+                print ("<span id='exit-code' style='display: none;'>$result->max_result</span>");
+                
+             ?>
+           </code>
+         </pre>
+       </div>
 
 
           <div class="btn-group" role="group" aria-label="..." id="output-download">
@@ -159,20 +185,19 @@ file_put_contents("$jobInfo->root/.delete-me", 'Python will delete me!');
                 // print str_replace($jobInfo->root, $result->attempt_dir, $res_output) . "<br>";
                 $dataPath = get_data_path($res_output, $result->attempt_dir);
                 $size = getFileSizeString($dataPath);
-                print $size ."<br>";
+                
                 // $serverpath = join_paths ($resultDir, $output->path);
-                // $wwwpath = str_replace (ROOT, '', $serverpath);
-                // $cls = $output->exit == '0' ? 'success' : 'danger';
-                // printf ("<a href='%s' class='btn btn-%s'>výstup sady %02d <br />%s</a>", $wwwpath, $cls, ++$i, getFileSizeString($serverpath));
+                // $wwwpath = str_replace (ROOT, '', $dataPath);
+                $wwwpath = path2url($dataPath);
+                $cls = $res->result <= JobResult::CORRECT_OUTPUT ? 'success' : 'danger';
+                printf ("<a href='%s' class='btn btn-%s'>výstup sady %02d <br />%s</a>", $wwwpath, $cls, ++$i, getFileSizeString($dataPath));
             }
             ?>
           </div>
-
-
-
       </div>
     </div>
 
+  <?php endif; ?>
 
     <footer class="footer">
       <div class="container text-muted">

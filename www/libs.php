@@ -5,7 +5,7 @@ function auth () {
     if (isset ($_SESSION['user']) && is_object ($_SESSION['user'])) {
         $user = $_SESSION['user'];
 
-        # user check
+        # user check for debug
         if (defined('ALLOWED_USERS')) {
             $users = unserialize (ALLOWED_USERS);
             $username = $user->username;
@@ -23,10 +23,14 @@ function auth () {
 }
 
 function user_allowed_reference($user) {
-    $users = array('jan.hybs', 'jan.brezina');
+    $users = unserialize(REFERENCE_USERS);
     return in_array($user->username, $users);
 }
 
+function redirect($args="") {
+  $url =  SERVER_ROOT . $args;
+  header("Location: $url");
+}
 
 function mkdirs ($location, $mode = 0774) {
     if (is_dir($location))
@@ -52,9 +56,28 @@ function getServiceStatus() {
     $serviceWatchdog    = ($pidWatchdog === $pidWatchdog_) && $pidWatchdog > 0;
     
     $result = (object)array();
-    $result->runner = $serviceRunner;
-    $result->watchdog = $serviceWatchdog;
+    
+    $result->runner           = $serviceRunner;
+    $result->watchdog         = $serviceWatchdog;
+    
+    $result->runnerPid        = $pidRunner;
+    $result->watchdogPid      = $pidWatchdog;
+    
+    $result->runnerPidFile    = '/tmp/tgh-runner.pid';
+    $result->watchdogPidFile  = '/tmp/tgh-watchdog.pid';
     return  $result;
+}
+
+function join_paths() {
+    $paths = array();
+    foreach (func_get_args() as $arg) {
+        if ($arg !== '') { $paths[] = $arg; }
+    }
+    return preg_replace('#/+#','/',join('/', $paths));
+}
+
+function path2url($file, $Protocol='http://') {
+    return $Protocol.$_SERVER['HTTP_HOST'].str_replace($_SERVER['DOCUMENT_ROOT'], '', $file);
 }
 
 
@@ -78,7 +101,7 @@ function waitForResult ($job) {
     
     if (!$serviceStatus->runner) {
         runService();
-        throw new Exception('Processing service is down. Try to send your code again in few minutes (It takes approx 1 minute for service to kick in).');
+        throw new Exception('');
     }
     
     # wait for file to get deleted
@@ -120,7 +143,7 @@ function rrmdir($dir) {
 } 
 
 function cleanJobFiles ($jobInfo) {
-    // rrmdir ($jobDir);
+    rrmdir ($jobInfo->root);
 }
 
 
