@@ -1,6 +1,6 @@
 {
     "problems":     "/var/www/html/tgh.nti.tul.cz/problems",
-    "jobs":         "/var/www/html/tgh.nti.tul.cz/s/jobs",
+    "jobs":         "/var/www/html/tgh.nti.tul.cz/jobs",
     "data":         "/var/www/html/tgh.nti.tul.cz/data",
     "config":       "/var/www/html/tgh.nti.tul.cz/config"
 }
