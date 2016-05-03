@@ -1,11 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 # author:   Jan Hybs
-import json
 
-import os
-import sys
-import time
+import os, sys, time, logging, json
 from jobs.job_control import JobControl, JobResult
 from jobs.job_request import JobRequest
 from utils import plucklib
@@ -32,6 +29,17 @@ class TGHProcessor(Daemon):
         Config.problems = self.config['problems']
         Config.data = self.config['data']
         Config.config_dir = self.config['config']
+        Config.log_file = self.config['log_file']
+
+        logging.root.setLevel(logging.INFO)
+        Logger._global_logger = Logger(
+            name='ROOT',
+            stream_level=logging.DEBUG,
+            file_level=logging.INFO,
+            fmt=Logger.default_format,
+            log_file=Config.log_file
+        )
+        Logger.instance().info('Logging on')
 
     @staticmethod
     def get_jobs():
