@@ -4,9 +4,9 @@
 set -x
 
 usr="root"
-# usr="jan-hybs"
-
 apa="apache"
+
+# usr="jan-hybs"
 # apa="www-data"
 
 # root perms

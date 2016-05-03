@@ -166,64 +166,35 @@ if (SERVICE_DEBUG)
                 flush();
                 
                 $result = waitForResult($jobInfo);
-                // cleanJobFiles($jobInfo);
-                // print_r($result);
-                // print ("<code id='result-summary'>$result->summary</code>");
+                $jj = new JobJson($result, $jobInfo);
+                cleanJobFiles($jobInfo);
+                print exec('whoami');
+
                 print ("<span id='exit-code' style='display: none;'>$result->max_result</span>");
              ?>
              <table class="table table-striped table-hover">
                <tr>
-                 <th>sada</th>
-                 <th>result</th>
-                 <th>duration</th>
-                 <th>io</th>
-                 <th>details</th>
+                 <th style="min-width: 80px;">Sada</th>
+                 <th style="min-width: 80px;">Výsledek</th>
+                 <th style="min-width: 100px;">Trvání</th>
+                 <th style="min-width: 140px;">I/O</th>
+                 <th>Detaily</th>
                </tr>
-               <?php foreach (@$result->result as $res):
-                    $cls = @$res->result <= JobResult::CORRECT_OUTPUT ? ' class="success"' : ' class="danger"';
-                    ?>
-                   <tr<?php echo $cls?>>
-                     <td><?php echo @$res->info->id; ?></td>
-                     <td><?php echo JobResult::toString(@$res->result); ?></td>
-                     <td><?php printf("%1.3f ms", @$res->duration); ?></td>
+               <?php foreach ($jj->results as $jjj):?>
+                   <tr class="<?php echo $jjj->class_str;?>">
+                     <td><?php echo $jjj->id; ?></td>
+                     <td><?php echo $jjj->result_str; ?></td>
+                     <td><?php echo $jjj->duration_str; ?></td>
                      <td>
                          <div class="btn-group" role="group" aria-label="...">
-                         <?php if(@$res->input): ?>
-                           <a target="_blank" class="btn btn-default" href="<?php echo path2url(@$res->input);?>">I</a>
-                         <?php else: ?>
-                            <a target="_blank" class="btn btn-default disabled" href="">I</a>
-                         <?php endif; ?>
-                         
-                           <a target="_blank" class="btn btn-default" href="<?php echo path2url(get_data_path(@$res->output, @$result->attempt_dir));?>">O</a>
+                             <?php 
+                                echo get_download_button($jjj->input_download, 'I', 'Vstupní soubor', FALSE, 'btn-default');
+                                echo get_download_button($jjj->output_download, 'O', 'Výstupní soubor', FALSE, 'btn-'.$jjj->class_str);
+                                echo get_download_button($jjj->reference_download, 'R', 'Referenční výstupní soubor', TRUE, 'btn-default');
+                              ?>
                          </div>
                      </td>
-                     <td><?php 
-                            if ($ref) {
-                                if (@$res->info->problem_size) {
-                                    echo " -p ";
-                                    echo @$res->info->problem_size;
-                                    if (@$res->info->random) {
-                                        echo " -r";
-                                    }
-                                }
-                            } else {
-                                if (@$res->result >= JobResult::CORRECT_OUTPUT) {
-                                    echo "<pre>";
-                                    echo @$res->method;
-                                    if (!empty($res->error))
-                                        echo ": " . @$res->error;
-                                    if (!empty($res->comparison)) {
-                                        if (is_object(@$res->comparison)) {
-                                            echo defined('JSON_PRETTY_PRINT') ? json_encode(@$res->comparison, JSON_PRETTY_PRINT) : json_encode(@$res->comparison);
-                                        }else{
-                                            print_r(@$res->comparison);
-                                        }
-                                        echo "</pre>";
-                                    }
-                                }
-                            }
-                         ?>
-                    </td>
+                     <td><pre><?php echo $jjj->details; ?></pre></td>
                    </tr>
                <?php endforeach; ?>
              </table>

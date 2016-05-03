@@ -72,14 +72,12 @@ function join_paths() {
     return preg_replace('#/+#','/',join('/', $paths));
 }
 
-function path2url($file, $Protocol='http://') {
-    return $Protocol.$_SERVER['HTTP_HOST'].str_replace($_SERVER['DOCUMENT_ROOT'], '', $file);
-}
 
-
-function get_data_path($tempFile, $dataDir, $f='/output/') {
-    $name = basename($tempFile);
-    return $dataDir . $f . $name;
+function get_download_button($url, $link, $alt, $hide=FALSE, $cls="") {
+    if (!$url)
+        return $hide ? '' : "<a href=\"#\" class=\"btn btn-default $cls disabled\" title=\"Soubor neexistuje\">$link</a>";
+    
+    return "<a href=\"$url\" class=\"btn btn-default $cls\" title=\"$alt\">$link</a>";
 }
 
 
@@ -168,4 +166,201 @@ function getFileSizeString ($filename) {
         return sprintf("%1.2f gB", $size / (1024*1024*1024));
 
     return "file is too large";
+}
+
+class JobJson {
+    
+    public $json = null;
+    public $job = null;
+    
+    public $attempt_dir = null;
+    public $tmp_dir = null;
+    public $reference = null;
+    
+    public $results = null;
+    
+    public static function get($obj, $prop, $default=null) {
+        if (isset($obj->$prop))
+            return $obj->$prop;
+        return $default;
+    }
+    
+    public function getRefUrl($url) {
+        return str_replace(ROOT, SERVER_ROOT, $url);
+    }
+    
+    public function getDataUrl($url, $folder) {
+        return $this->getRefUrl(join_paths($folder, basename($url)));
+    }
+    
+    public function getRefUrlFromInput($input) {
+        '/var/www/html/test/tgh/problems/WEBISL/input/WEBISL_0.in';
+        $name = str_replace('.in', '', basename($input));
+        return $this->getRefUrl(str_replace("/input/$name.in", "/output/$name.out", $input));
+    }
+    
+    function __construct($json, $job) {
+        $this->json = $json;
+        $this->job  = $job;
+        
+        $this->attempt_dir  = JobJson::get($json, 'attempt_dir');
+        $this->tmp_dir      = JobJson::get($job, 'tmp_dir');
+        $this->reference    = JobJson::get($job, 'reference');
+        $this->results      = array();
+        
+        $results            = JobJson::get($json, 'result', array());
+        foreach ($results as $key => $result) {
+            array_push($this->results, new JobJsonResult($this, $result));
+        }
+    }
+}
+
+class JobJsonResult {
+    public $input = FALSE;
+    public $output = FALSE;
+    
+    public $input_download = FALSE;
+    public $output_download = FALSE;
+    public $reference_download = FALSE;
+    
+    public $id;
+    public $random;
+    public $random_str;
+    public $problem_size;
+    public $problem_size_str;
+
+    public $class_str;    
+    public $result;
+    public $result_str;
+    
+    
+    public $details;
+    public $duration;
+    public $duration_str;
+    
+    function __construct($jobJson, $result) {
+        
+        $info = (object)JobJson::get($result, 'info', array());
+        
+        $this->id           = JobJson::get($info, 'id', 'unknown');
+        $this->random       = JobJson::get($info, 'random', FALSE);
+        $this->problem_size = JobJson::get($info, 'problem_size', NULL);
+        $this->result       = JobJson::get($result, 'result', JobResult::UNKNOWN_ERROR); 
+        $this->duration = JobJson::get($result, 'duration', 'NaN');
+
+        $this->class_str = $this->result <= JobResult::CORRECT_OUTPUT ? 'success' : 'danger';        
+        $this->result_str   = JobResult::toString($this->result);
+        $this->problem_size_str = $this->random ? '-r ' : '';
+        $this->random_str       = $this->problem_size ? '-p ' . $this->problem_size : '';
+        $this->duration_str = sprintf("%1.3f ms", $this->duration);
+
+        $tmp = NULL;
+        $this->details  = '';
+        if ($this->problem_size !== NULL)
+            $this->details .= 'Args: ' . trim(sprintf("%s%s", $this->problem_size_str, $this->random_str)) . "\n";
+            
+        if($tmp=JobJson::get($result, 'method')) 
+            $this->details .= "Metoda: $tmp\n";
+            
+        if($tmp=JobJson::get($result, 'error'))
+            $this->details .= "Error: $tmp\n";
+            
+        if($tmp=JobJson::get($result, 'comparison')){
+            if (is_object($tmp))
+                $this->details .= "Porovnání: \n" . format_json($tmp) . "\n";
+            else
+                $this->details .= "Porovnání: \n" . $tmp . "\n";
+        }
+
+        # IO files
+        $this->input = JobJson::get($result, 'input');
+        $this->output = JobJson::get($result, 'output');
+        
+        # input file always comes from "reference"
+        if ($this->input !== NULL) {
+            $this->input_download = $jobJson->getRefUrl($this->input);
+        }
+        
+        # reference output is only available if method (we take it from input file)
+        if (JobJson::get($result, 'method') === 'file-comparison')
+            $this->reference_download = $jobJson->getRefUrlFromInput($this->input);
+        
+        # general output depends on reference flag
+        if ($jobJson->reference) {
+            if ($this->output !== NULL)
+                $this->output_download = $jobJson->getRefUrl($this->output);
+        } else {
+            if ($this->output !== NULL)
+                $this->output_download = $jobJson->getDataUrl($this->output, join_paths($jobJson->attempt_dir, 'output'));
+        }
+    }
+}
+
+function format_json($json_, $html = false, $tabspaces = null) {
+    $json = json_encode($json_);
+    $tabcount = 0;
+    $result = '';
+    $inquote = false;
+    $ignorenext = false;
+
+    if ($html) {
+        $tab = str_repeat("&nbsp;", ($tabspaces == null ? 4 : $tabspaces));
+        $newline = "<br/>";
+    } else {
+        $tab = ($tabspaces == null ? "\t" : str_repeat(" ", $tabspaces));
+        $newline = "\n";
+    }
+
+    for($i = 0; $i < strlen($json); $i++) {
+        $char = $json[$i];
+
+        if ($ignorenext) {
+            $result .= $char;
+            $ignorenext = false;
+        } else {
+            switch($char) {
+                case ':':
+                    $result .= $char . (!$inquote ? " " : "");
+                    break;
+                case '{':
+                    if (!$inquote) {
+                        $tabcount++;
+                        $result .= $char . $newline . str_repeat($tab, $tabcount);
+                    }
+                    else {
+                        $result .= $char;
+                    }
+                    break;
+                case '}':
+                    if (!$inquote) {
+                        $tabcount--;
+                        $result = trim($result) . $newline . str_repeat($tab, $tabcount) . $char;
+                    }
+                    else {
+                        $result .= $char;
+                    }
+                    break;
+                case ',':
+                    if (!$inquote) {
+                        $result .= $char . $newline . str_repeat($tab, $tabcount);
+                    }
+                    else {
+                        $result .= $char;
+                    }
+                    break;
+                case '"':
+                    $inquote = !$inquote;
+                    $result .= $char;
+                    break;
+                case '\\':
+                    if ($inquote) $ignorenext = true;
+                    $result .= $char;
+                    break;
+                default:
+                    $result .= $char;
+            }
+        }
+    }
+
+    return $result;
 }
