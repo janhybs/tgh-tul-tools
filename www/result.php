@@ -168,7 +168,6 @@ if (SERVICE_DEBUG)
                 $result = waitForResult($jobInfo);
                 $jj = new JobJson($result, $jobInfo);
                 cleanJobFiles($jobInfo);
-                print exec('whoami');
 
                 print ("<span id='exit-code' style='display: none;'>$result->max_result</span>");
              ?>
