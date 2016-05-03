@@ -96,7 +96,7 @@ if (empty($prefferedSource))  $prefferedSource    = @$history->source;
         </div>
         <?php endif; ?>
 
-        <form name="send-code" action="/test/tgh/result/" method="post" accept-charset="utf-8">
+        <form name="send-code" action="<?php echo SERVER_ROOT;?>/result/" method="post" accept-charset="utf-8">
 
             <label for="selected-problem">Problém</label>
             <div class="input-group">
