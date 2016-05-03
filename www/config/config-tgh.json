@@ -2,5 +2,6 @@
     "problems":     "/var/www/html/tgh.nti.tul.cz/problems",
     "jobs":         "/var/www/html/tgh.nti.tul.cz/jobs",
     "data":         "/var/www/html/tgh.nti.tul.cz/data",
-    "config":       "/var/www/html/tgh.nti.tul.cz/config"
+    "config":       "/var/www/html/tgh.nti.tul.cz/config",
+    "log_file":     "/var/www/html/tgh.nti.tul.cz/jobs/service.log"
 }
