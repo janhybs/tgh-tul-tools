@@ -12,6 +12,19 @@
   font-size: 1em;
 }
 
+.table td, .table th {
+   text-align: center;   
+}
+
+.table td pre, .table td code {
+    text-align: left;
+    font-size: 0.8em;
+}
+
+.table a.disabled {
+    opacity: 0.5;
+}
+
 #main-cont {
   margin-right: auto;
   margin-left: auto;

@@ -1,11 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 # author:   Jan Hybs
-import json
 
-import os
-import sys
-import time
+import os, sys, time, logging, json
 from jobs.job_control import JobControl, JobResult
 from jobs.job_request import JobRequest
 from utils import plucklib
@@ -32,6 +29,17 @@ class TGHProcessor(Daemon):
         Config.problems = self.config['problems']
         Config.data = self.config['data']
         Config.config_dir = self.config['config']
+        Config.log_file = self.config['log_file']
+
+        logging.root.setLevel(logging.INFO)
+        Logger._global_logger = Logger(
+            name='ROOT',
+            stream_level=logging.DEBUG,
+            file_level=logging.INFO,
+            fmt=Logger.default_format,
+            log_file=Config.log_file
+        )
+        Logger.instance().info('Logging on')
 
     @staticmethod
     def get_jobs():
@@ -44,6 +52,11 @@ class TGHProcessor(Daemon):
         jobs = [j for j in jobs if os.path.isdir(j)]
         jobs = [j for j in jobs if 'config.json' in os.listdir(j)]
         jobs = [j for j in jobs if '.delete-me' in os.listdir(j)]
+        
+        # reload config file if there are jobs
+        if jobs:
+            Langs.reload()
+            Problems.reload()
 
         json_jobs = [JobRequest(os.path.join(j, 'config.json')) for j in jobs]
 
@@ -111,6 +124,9 @@ class TGHProcessor(Daemon):
         call(['cp', '-r', job.output_root, dest_output_dir])
         call(['cp', job.result_file, dest_dir])
         call(['cp', job.main_file, dest_dir])
+        call(['chmod', '-R', '777', job.root])
+
+        Logger.instance().info('Summary: \n{}'.format(summary))
 
         return summary, attempt_dir
 
@@ -130,9 +146,18 @@ class TGHProcessor(Daemon):
         summary.append('')
 
         for res in result:
-            print res
             res_code = JobResult.reverse2(res['result'])
-            summary.append(u'  [{}] sada {res[id]:20s} {res[duration]:10.3f} ms'.format(res_code, res=res, job=job))
+            if job.reference:
+                if res['info']['problem_size'] is None:
+                    info = '{res[info][id]}'.format(res=res)
+                else:
+                    info = '{res[info][id]} (-p {res[info][problem_size]}{r})'.format(
+                        res=res, r=' -r' if res['info']['random'] else '')
+                summary.append(u'  [{}] sada {info:30s} {res[duration]:10.3f} ms'
+                               .format(res_code, res=res, job=job, info=info))
+            else:
+                summary.append(u'  [{}] sada {res[info][id]:20s} {res[duration]:10.3f} ms'
+                               .format(res_code, res=res, job=job))
 
             if res['result'] in (JobResult.COMPILE_ERROR, JobResult.RUN_ERROR, JobResult.UNKNOWN_ERROR):
                 summary.append('    Error: {res[error]}'.format(res=res))

@@ -12,6 +12,7 @@ class Logger(object):
     _global_logger = None
     stream_level = logging.DEBUG
     file_level = logging.INFO
+    default_format = logging.Formatter('%(asctime)s %(name)-15s %(levelname)s: %(message)s')
 
     @staticmethod
     def instance():
@@ -33,22 +34,21 @@ class Logger(object):
             log_level = getattr(logging, log_level.upper(), log_level.upper())
 
             # set global log level
-            fmt = logging.Formatter('%(asctime)s %(name)-15s %(levelname)s: %(message)s')
             logging.root.setLevel(log_level)
-            Logger._global_logger = Logger('ROOT', Logger.stream_level, Logger.file_level,  fmt)
+            Logger._global_logger = Logger('ROOT', Logger.stream_level, Logger.file_level, Logger.default_format)
 
         return Logger._global_logger
 
-    def __init__(self, name, stream_level=logging.INFO, file_level=logging.INFO, fmt=None):
+    def __init__(self, name, stream_level=logging.INFO, file_level=logging.INFO, fmt=None, log_file='./python.log'):
         self.logger = logging.getLogger(name)
 
-        f = os.path.join(os.getcwd(), 'python.log')
         stream_logger = logging.StreamHandler()
         stream_logger.setLevel(stream_level)
         stream_logger.setFormatter(fmt)
         self.logger.addHandler(stream_logger)
         
         try:
+            f = log_file
             file_logger = logging.FileHandler(f)
             file_logger.setLevel(file_level)
             file_logger.setFormatter(fmt)

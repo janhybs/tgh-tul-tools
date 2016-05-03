@@ -85,7 +85,6 @@ if (empty($prefferedSource))  $prefferedSource    = @$history->source;
             </button>
             <strong>Aktualizováno 29.5.</strong> Problémy hlaste na: jan.brezina at tul.cz. 
             <a href="http://atrey.karlin.mff.cuni.cz/~morf/vyuka/tgh/index.html" class="alert-link"><span class="glyphicon glyphicon-link" aria-hidden="true"></span>Stránka předmětu TGH</a>
-            zadání 2014 a další poznámky
         </div>
         <?php if ($error): ?>
         <div class="alert alert-danger" role="alert">
@@ -96,7 +95,7 @@ if (empty($prefferedSource))  $prefferedSource    = @$history->source;
         </div>
         <?php endif; ?>
 
-        <form name="send-code" action="/test/tgh/result/" method="post" accept-charset="utf-8">
+        <form name="send-code" action="<?php echo SERVER_ROOT;?>/result/" method="post" accept-charset="utf-8">
 
             <label for="selected-problem">Problém</label>
             <div class="input-group">
@@ -132,10 +131,10 @@ if (empty($prefferedSource))  $prefferedSource    = @$history->source;
             </div>
             
             <?php if(user_allowed_reference($user)): ?>
-            <div class="form-group highlight checkbox">
+            <div class="form-group highlight">
+                <input type="submit" class="btn btn-success btn-large" value="Spustit referenční řešení" name="reference-solution" id="reference-solution"/>
                 <label for="reference-solution">
-                    <input name="reference-solution" type="checkbox" class="bigger-checkbox" id="reference-solution">
-                    Referenční řešení
+                    Spustí referenční řešení úlohy a vygeneruje vstupní a výstupní soubory
                 </label>
             </div>
             <?php endif;?>
