@@ -85,7 +85,6 @@ if (empty($prefferedSource))  $prefferedSource    = @$history->source;
             </button>
             <strong>Aktualizováno 29.5.</strong> Problémy hlaste na: jan.brezina at tul.cz. 
             <a href="http://atrey.karlin.mff.cuni.cz/~morf/vyuka/tgh/index.html" class="alert-link"><span class="glyphicon glyphicon-link" aria-hidden="true"></span>Stránka předmětu TGH</a>
-            zadání 2014 a další poznámky
         </div>
         <?php if ($error): ?>
         <div class="alert alert-danger" role="alert">
