@@ -126,6 +126,8 @@ class TGHProcessor(Daemon):
         call(['cp', job.main_file, dest_dir])
         call(['chmod', '-R', '777', job.root])
 
+        Logger.instance().info('Summary: \n{}'.format(summary))
+
         return summary, attempt_dir
 
     @staticmethod
