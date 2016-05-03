@@ -108,6 +108,18 @@ function waitForResult ($job) {
     if ($graceful) {
         return json_decode(file_get_contents($resultFile));
     }
+    
+    if (!getServiceStatus()->runner) {
+        throw new Exception('Služba neodpověděla v daném časovém úseku jelikož služba něběží. Je ale možné, že se na serveru provádí údržba. Pokud problém do několika minut nezmizí, kontaktujte <strong>jan.hybs(at)tul.cz</strong>');
+    }
+    
+    throw new Exception('Služba neodpověděla v daném časovém úseku. To může být způsobeno následujícím: '.
+                        '<ul>'.
+                            '<li>Odeslané řešení netihlo dokončit úlohu ve vymezené době</li>'.
+                            '<li>Interní chyba serveru</li>'.
+                        '</ul>'.
+                        ' Pokud problém přetrvá, kontaktujte <strong>jan.hybs(at)tul.cz</strong>');
+    
     throw new Exception('Service did not respond within the timeout period. If problem remains, please contact <strong>jan.hybs (at) tul.cz</strong>');
     
     // # no response in 60sec
@@ -176,6 +188,10 @@ class JobJson {
     public $attempt_dir = null;
     public $tmp_dir = null;
     public $reference = null;
+    public $max_result = null;
+    
+    public $is_valid = FALSE;
+    public $error = FALSE;
     
     public $results = null;
     
@@ -203,7 +219,11 @@ class JobJson {
         $this->json = $json;
         $this->job  = $job;
         
+        $this->error        = JobJson::get($json, 'error', '');
+        $this->is_valid     = $this->error === '';
+        
         $this->attempt_dir  = JobJson::get($json, 'attempt_dir');
+        $this->max_result   = JobJson::get($job, 'max_result');
         $this->tmp_dir      = JobJson::get($job, 'tmp_dir');
         $this->reference    = JobJson::get($job, 'reference');
         $this->results      = array();
