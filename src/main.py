@@ -116,6 +116,7 @@ class TGHProcessor(Daemon):
         call(['cp', '-r', job.output_root, dest_output_dir])
         call(['cp', job.result_file, dest_dir])
         call(['cp', job.main_file, dest_dir])
+        call(['chmod', '-R', '777', job.root])
 
         return summary, attempt_dir
 
