@@ -164,40 +164,55 @@ if (SERVICE_DEBUG)
                 // ob_start();
                 ob_flush();
                 flush();
+                try {
+                    $result = waitForResult($jobInfo);
+                } catch (Exception $e) {
+                    $result = (object)array(
+                        'max_result' => JobResult::UNKNOWN_ERROR,
+                        'error'      => $e->getMessage()
+                    );
+                }
                 
-                $result = waitForResult($jobInfo);
+                
                 $jj = new JobJson($result, $jobInfo);
                 cleanJobFiles($jobInfo);
 
-                print ("<span id='exit-code' style='display: none;'>$result->max_result</span>");
+                print ("<span id='exit-code' style='display: none;'>$jj->max_result</span>");
              ?>
-             <table class="table table-striped table-hover">
-               <tr>
-                 <th style="min-width: 80px;">Sada</th>
-                 <th style="min-width: 80px;">Výsledek</th>
-                 <th style="min-width: 100px;">Trvání</th>
-                 <th style="min-width: 140px;">I/O</th>
-                 <th>Detaily</th>
-               </tr>
-               <?php foreach ($jj->results as $jjj):?>
-                   <tr class="<?php echo $jjj->class_str;?>">
-                     <td><?php echo $jjj->id; ?></td>
-                     <td><?php echo $jjj->result_str; ?></td>
-                     <td><?php echo $jjj->duration_str; ?></td>
-                     <td>
-                         <div class="btn-group" role="group" aria-label="...">
-                             <?php 
-                                echo get_download_button($jjj->input_download, 'I', 'Vstupní soubor', FALSE, 'btn-default');
-                                echo get_download_button($jjj->output_download, 'O', 'Výstupní soubor', FALSE, 'btn-'.$jjj->class_str);
-                                echo get_download_button($jjj->reference_download, 'R', 'Referenční výstupní soubor', TRUE, 'btn-default');
-                              ?>
-                         </div>
-                     </td>
-                     <td><pre><?php echo $jjj->details; ?></pre></td>
+             <?php if($jj->is_valid): ?>
+                 <table class="table table-striped table-hover">
+                   <tr>
+                     <th style="min-width: 80px;">Sada</th>
+                     <th style="min-width: 80px;">Výsledek</th>
+                     <th style="min-width: 100px;">Trvání</th>
+                     <th style="min-width: 140px;">I/O</th>
+                     <th>Detaily</th>
                    </tr>
-               <?php endforeach; ?>
-             </table>
-       </div>
+                   <?php foreach ($jj->results as $jjj):?>
+                       <tr class="<?php echo $jjj->class_str;?>">
+                         <td><?php echo $jjj->id; ?></td>
+                         <td><?php echo $jjj->result_str; ?></td>
+                         <td><?php echo $jjj->duration_str; ?></td>
+                         <td>
+                             <div class="btn-group" role="group" aria-label="...">
+                                 <?php 
+                                    echo get_download_button($jjj->input_download, 'I', 'Vstupní soubor', FALSE, 'btn-default');
+                                    echo get_download_button($jjj->output_download, 'O', 'Výstupní soubor', FALSE, 'btn-'.$jjj->class_str);
+                                    echo get_download_button($jjj->reference_download, 'R', 'Referenční výstupní soubor', TRUE, 'btn-default');
+                                  ?>
+                             </div>
+                         </td>
+                         <td><pre><?php echo $jjj->details; ?></pre></td>
+                       </tr>
+                   <?php endforeach; ?>
+                </table>
+            <?php else: ?>
+                <h2>Server timout</h2>
+                <div class="alert alert-danger">
+                    <?php echo $jj->error; ?>
+                </div>
+            <?php endif; ?>
+            </div>
       </div>
     </div>
 
