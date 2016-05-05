@@ -71,8 +71,6 @@ class ProcessException(Exception):
     def __init__(self, info):
         super(ProcessException, self).__init__()
         self.info = info
-        import json
-        print json.dumps(info, indent=4)
 
 
 def read(f):
