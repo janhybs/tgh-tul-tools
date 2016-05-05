@@ -8,6 +8,12 @@
   color: #a94442;
 }
 
+.alert-danger pre {
+    color: inherit;
+    background-color: inherit;
+    border: none;
+}
+
 .alert.info p {
   font-size: 1em;
 }

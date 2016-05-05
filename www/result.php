@@ -209,7 +209,7 @@ if (SERVICE_DEBUG)
             <?php else: ?>
                 <h2>Fatal error</h2>
                 <div class="alert alert-danger">
-                    <?php echo $jj->error; ?>
+                    <pre><?php echo trim($jj->error); ?></pre>
                 </div>
             <?php endif; ?>
             </div>

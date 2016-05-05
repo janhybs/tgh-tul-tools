@@ -77,7 +77,7 @@ class TGHProcessor(Daemon):
                         os.unlink(job.delete_me_file)
                         result = JobControl.process(job)
                     except ProcessException as e:
-                        result = [e.info]
+                        result = e.info
                     except Exception as e:
                         result = dict(
                             result=JobResult.UNKNOWN_ERROR,
