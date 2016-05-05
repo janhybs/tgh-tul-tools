@@ -101,7 +101,10 @@ class Command(object):
             Logger.instance().info('Terminating process')
             self.terminated = True
             self.process.terminate()
-            self.process.kill()
+            try:
+                self.process.kill()
+            except Exception as e:
+                pass
             thread.join()
 
     def run(self, timeout=60):
