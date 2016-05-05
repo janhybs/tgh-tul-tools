@@ -75,9 +75,9 @@ function join_paths() {
 
 function get_download_button($url, $link, $alt, $hide=FALSE, $cls="") {
     if (!$url)
-        return $hide ? '' : "<a href=\"#\" class=\"btn btn-default $cls disabled\" title=\"Soubor neexistuje\">$link</a>";
+        return $hide ? '' : "<a href=\"#\" class=\"btn btn-default $cls disabled\" target=\"_blank\" title=\"Soubor neexistuje\">$link</a>";
     
-    return "<a href=\"$url\" class=\"btn btn-default $cls\" title=\"$alt\">$link</a>";
+    return "<a href=\"$url\" class=\"btn btn-default $cls\" target=\"_blank\" title=\"$alt\">$link</a>";
 }
 
 

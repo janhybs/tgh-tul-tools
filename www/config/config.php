@@ -1,8 +1,8 @@
 <?php
 
-define ('ROOT', realpath($_SERVER["DOCUMENT_ROOT"]));
-define ('SERVER_ROOT', 'https://tgh.nti.tul.cz');
-$config = file_get_contents(ROOT . '/config/config-tgh.json');
+define ('ROOT',                     '/var/www/html/tgh.nti.tul.cz');
+define ('SERVER_ROOT',              'https://tgh.nti.tul.cz');
+$config = file_get_contents(ROOT .  '/config/config-tgh.json');
 
 // define ('ROOT', realpath($_SERVER["DOCUMENT_ROOT"]) . '/test/tgh');
 // define ('SERVER_ROOT', 'http://hybs.nti.tul.cz/test/tgh');
