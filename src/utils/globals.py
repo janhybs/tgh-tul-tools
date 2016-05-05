@@ -3,6 +3,7 @@
 # author:   Jan Hybs
 
 import json, os
+import random
 
 
 class Config(object):
@@ -133,3 +134,9 @@ def tryjson(f):
         return json.loads(content)
     except Exception as e:
         return content
+
+
+def random_range(max, count, min=1):
+    r = list(range(min, max + min))
+    random.shuffle(r)
+    return r[0:count]

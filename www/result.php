@@ -202,12 +202,12 @@ if (SERVICE_DEBUG)
                                   ?>
                              </div>
                          </td>
-                         <td><pre><?php echo $jjj->details; ?></pre></td>
+                         <td><pre><?php echo $jjj->command_str; ?></pre></td>
                        </tr>
                    <?php endforeach; ?>
                 </table>
             <?php else: ?>
-                <h2>Server timout</h2>
+                <h2>Fatal error</h2>
                 <div class="alert alert-danger">
                     <?php echo $jj->error; ?>
                 </div>

@@ -2,10 +2,11 @@
 # -*- coding: utf-8 -*-
 # author:   Jan Hybs
 
-import os, sys, json
+import os, sys, json, random
 from jobs.job_processing import DynamicLanguage, Command, LangMap
 from utils.globals import ProcessException, remove_empty, compare, read, tryjson, Config, ensure_path
 from utils.logger import Logger
+from config import wait_timescale
 
 
 class JobResult(object):
@@ -14,9 +15,12 @@ class JobResult(object):
 
     CORRECT_OUTPUT = 1
     WRONG_OUTPUT = 3
+    TIMEOUT_CORRECT_OUTPUT = 5
+    TIMEOUT_WRONG_OUTPUT = 7
 
     COMPILE_ERROR = 10
     RUN_ERROR = 20
+    TIMEOUT = 30
     UNKNOWN_ERROR = 100
 
     _dict1 = dict()
@@ -27,10 +31,13 @@ class JobResult(object):
         if not JobResult._dict1:
             JobResult._dict1[JobResult.CORRECT_OUTPUT] = 'A'
             JobResult._dict1[JobResult.WRONG_OUTPUT] = 'W'
+            JobResult._dict1[JobResult.TIMEOUT_CORRECT_OUTPUT] = 'E'
+            JobResult._dict1[JobResult.TIMEOUT_WRONG_OUTPUT] = 'W'
 
             JobResult._dict1[JobResult.UNKNOWN_ERROR] = 'E'
             JobResult._dict1[JobResult.COMPILE_ERROR] = 'E'
             JobResult._dict1[JobResult.RUN_ERROR] = 'E'
+            JobResult._dict1[JobResult.TIMEOUT] = 'E'
 
             JobResult._dict1[JobResult.RUN_OK] = 'O'
             JobResult._dict1[JobResult.OK] = 'O'
@@ -42,10 +49,13 @@ class JobResult(object):
         if not JobResult._dict2:
             JobResult._dict2[JobResult.CORRECT_OUTPUT] = 'OK'
             JobResult._dict2[JobResult.WRONG_OUTPUT] = 'ER'
+            JobResult._dict1[JobResult.TIMEOUT_CORRECT_OUTPUT] = 'TO'
+            JobResult._dict1[JobResult.TIMEOUT_WRONG_OUTPUT] = 'ER'
 
             JobResult._dict2[JobResult.UNKNOWN_ERROR] = 'ER'
             JobResult._dict2[JobResult.COMPILE_ERROR] = 'ER'
             JobResult._dict2[JobResult.RUN_ERROR] = 'ER'
+            JobResult._dict1[JobResult.TIMEOUT] = 'ER'
 
             JobResult._dict2[JobResult.RUN_OK] = 'OK'
             JobResult._dict2[JobResult.OK] = 'OK'
@@ -62,8 +72,7 @@ class JobControl(object):
         :type request: jobs.job_request.JobRequest
         """
         ensure_path(os.path.join(request.root, 'output'), False)
-        print os.path.join(request.root, 'output')
-        
+
         if request.reference:
             job = ReferenceJob(request)
         else:
@@ -117,16 +126,22 @@ class StudentJob(object):
 
         run_args = self.module.run()
         run_command = Command(run_args, inn_file, out_file, err_file)
-        run_result = run_command.run()
+        run_result = run_command.run(input_spec.time * wait_timescale)
 
         result_base.update(run_result.info)
         result_base['info']['id'] = case_id
         result_base['command'] = run_args[-1] if len(run_args) > 0 else '<no command>'
 
+        # timeout
+        if run_result.info['terminated']:
+            result_base['result'] = JobResult.TIMEOUT
+            Logger.instance().info('    {} Command was terminated!'.format(case_id))
+            return result_base
+
         # run error
         if run_result.exit != 0:
             result_base['result'] = JobResult.RUN_ERROR
-            Logger.instance().debug('    {} error while execution'.format(case_id))
+            Logger.instance().info('    {} error while execution'.format(case_id))
             return result_base
 
         # run ok
@@ -136,12 +151,20 @@ class StudentJob(object):
         # run ref script to test solution's output
         if not self.r.problem.multiple_solution:
             compare_result = self.compare(result_base, case_id, ref_out_file, out_file)
-            return compare_result
+            result_base.update(compare_result)
         else:
             comp_result = self.reference.test_solution(case_id)
             result_base['result'] = comp_result['result']
             result_base['comparison'] = comp_result['comparison']
             result_base['method'] = comp_result['method']
+
+        # mark timeout results
+        if run_result.duration/1000 > input_spec.time:
+            if result_base['result'] == JobResult.CORRECT_OUTPUT:
+                result_base['result'] = JobResult.TIMEOUT_CORRECT_OUTPUT
+
+            elif result_base['result'] == JobResult.WRONG_OUTPUT:
+                result_base['result'] = JobResult.TIMEOUT_WRONG_OUTPUT
 
         return result_base
 
@@ -152,13 +175,14 @@ class StudentJob(object):
         cases = input_spec.cases
         result = list()
 
-        for c in range(1, cases + 1):
+        for c in input_spec.input_cases or [1]:
             case_id = '{}.{}'.format(input_spec.id, c)
             # generating reference output
             result.append(self._static(input_spec, case_id))
         return result
 
-    def compare(self, info, case_id, a, b):
+    @staticmethod
+    def compare(info, case_id, a, b):
         try:
             compare_result = compare(a, b)
             if compare_result:
@@ -242,7 +266,7 @@ class ReferenceJob(object):
             out_file = os.path.join(self.program_root, 'input', '{}.in'.format(case_id))
             err_file = os.path.join(self.program_root, 'input', '{}.err'.format(case_id))
 
-            run_args = self.module.run(prepare=input_spec.problem_size, random=input_spec.random)
+            run_args = self.module.run(prepare=input_spec.problem_size, rnd=input_spec.random)
             run_command = Command(run_args, inn_file, out_file, err_file)
             run_result = run_command.run()
 

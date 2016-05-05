@@ -3,7 +3,7 @@
 # author:   Jan Hybs
 
 import json, os, sys, datetime
-from utils.globals import Langs
+from utils.globals import Langs, random_range
 from utils.globals import Problems
 
 
@@ -64,11 +64,12 @@ class Problem(object):
 class ProblemInput(object):
     def __init__(self, o={}):
         self.id = o.get('id', None)
-        self.time = o.get('time', None)
+        self.time = o.get('time', 60)
         self.problem_size = o.get('problem_size', None)
         self.random = o.get('random', None)
-        self.dynamic = self.problem_size is not None or self.random is not None
+        self.dynamic = self.problem_size is not None
         self.cases = o.get('cases', 10 if self.random else 1)
+        self.input_cases = sorted(random_range(self.cases, o.get('random_cases', 1)))
 
     def __repr__(self):
         if self.dynamic:
