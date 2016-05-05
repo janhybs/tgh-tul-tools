@@ -79,13 +79,6 @@ if (empty($prefferedSource))  $prefferedSource    = @$history->source;
       <div class="container" id="main-cont">
         <h1>TGH <small data-prefix=" úloha " class="problem-name"></small></h1>
 
-        <div class="alert alert-info" role="alert">
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
-            <strong>Aktualizováno 29.5.</strong> Problémy hlaste na: jan.brezina at tul.cz. 
-            <a href="http://atrey.karlin.mff.cuni.cz/~morf/vyuka/tgh/index.html" class="alert-link"><span class="glyphicon glyphicon-link" aria-hidden="true"></span>Stránka předmětu TGH</a>
-        </div>
         <?php if ($error): ?>
         <div class="alert alert-danger" role="alert">
             <button type="button" class="close" data-dismiss="alert" aria-label="Close">
@@ -94,63 +87,85 @@ if (empty($prefferedSource))  $prefferedSource    = @$history->source;
             <strong><?php echo $error; ?></strong>
         </div>
         <?php endif; ?>
-
-        <form name="send-code" action="<?php echo SERVER_ROOT;?>/result/" method="post" accept-charset="utf-8">
-
-            <label for="selected-problem">Problém</label>
-            <div class="input-group">
-                <select id="selected-problem" name="selected-problem" class="form-control">
-
-                    <?php foreach (getProblems() as $problem): ?>
-                    <option value="<?php echo $problem->id; ?>"<?php echo (strcmp($problem->id, $prefferedProblem) === 0 ? ' selected="selected"' : ''); ?>><?php echo $problem->name; ?></option>
-                    <?php echo $prefferedProblem; endforeach; ?>
-
-                </select>
-                <a href="<?php echo SERVER_ROOT;?>/problems/" class="btn btn-success btn-large input-group-addon active problem-url" data-prefix="<?php echo SERVER_ROOT;?>/problems/" target="_blank">
-                    <span class="glyphicon glyphicon-link" aria-hidden="true"></span>
-                    Otevřít zadání pro úlohu
-                    <strong class="problem-name"></strong>
-                </a>
-            </div>
-
-            <label for="selected-language">Programovací jazyk:</label>
-            <div class="input-group">
-                <select id="selected-language" name="selected-language" class="form-control">
-
-                    <?php foreach (getLanguages() as $lang): ?>
-                    <option value="<?php echo $lang->id; ?>"<?php echo (strcmp($lang->id, $prefferedLang) === 0 ? ' selected="selected"' : ''); ?>><?php echo $lang->name; ?> (<?php echo $lang->version; ?>)</option>
-                    <?php endforeach; ?>
-
-                </select>
-
-                <a href="#" class="btn btn-info btn-large input-group-addon active lang-url">
-                    <span class="glyphicon glyphicon-console" aria-hidden="true"></span>
-                    Ukázka v jazyce
-                    <strong class="lang-name"></strong>
-                </a>
+        
+        <?php if(!getProblems()): ?>
+            <big>
+                <div class="alert alert-danger">
+                    <strong>Error</strong> Problém při načítání konfiguračního souboru <code>problems.json</code>
+                </div>
+            </big>
+        <?php elseif (!getLanguages()): ?>
+            <big>
+                <div class="alert alert-danger">
+                    <strong>Error</strong> Problém při načítání konfiguračního souboru <code>langs.json</code>
+                </div>
+            </big>
+        <?php else: ?>
+            <div class="alert alert-info" role="alert">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <strong>Aktualizováno 29.5.</strong> Problémy hlaste na: jan.brezina at tul.cz. 
+                <a href="http://atrey.karlin.mff.cuni.cz/~morf/vyuka/tgh/index.html" class="alert-link"><span class="glyphicon glyphicon-link" aria-hidden="true"></span>Stránka předmětu TGH</a>
             </div>
             
-            <?php if(user_allowed_reference($user)): ?>
-            <div class="form-group highlight">
-                <input type="submit" class="btn btn-success btn-large" value="Spustit referenční řešení" name="reference-solution" id="reference-solution"/>
-                <label for="reference-solution">
-                    Spustí referenční řešení úlohy a vygeneruje vstupní a výstupní soubory
-                </label>
-            </div>
-            <?php endif;?>
+            <form name="send-code" action="<?php echo SERVER_ROOT;?>/result/" method="post" accept-charset="utf-8">
 
-            <div class="input-group" id="source-code-example-holder" style="display: none;">
-                <label for="source-code-example">Ukázka v jazyce <strong class="lang-name"></strong></label>
-                <pre><code id="source-code-example"></code></pre>
-            </div>
+                <label for="selected-problem">Problém</label>
+                <div class="input-group">
+                    <select id="selected-problem" name="selected-problem" class="form-control">
 
-            <div class="form-group">
-                <label for="comment">Zdrojový kód:</label>
-                <textarea class="form-control" rows="20" name="source-code" id="source-code"><?php echo $prefferedSource; ?></textarea>
-            </div>
+                        <?php foreach (getProblems() as $problem): ?>
+                        <option value="<?php echo $problem->id; ?>"<?php echo (strcmp($problem->id, $prefferedProblem) === 0 ? ' selected="selected"' : ''); ?>><?php echo $problem->name; ?></option>
+                        <?php echo $prefferedProblem; endforeach; ?>
 
-            <input type="submit" class="btn btn-success btn-large" value="Odevzdat řešení"/>
-        </form>
+                    </select>
+                    <a href="<?php echo SERVER_ROOT;?>/problems/" class="btn btn-success btn-large input-group-addon active problem-url" data-prefix="<?php echo SERVER_ROOT;?>/problems/" target="_blank">
+                        <span class="glyphicon glyphicon-link" aria-hidden="true"></span>
+                        Otevřít zadání pro úlohu
+                        <strong class="problem-name"></strong>
+                    </a>
+                </div>
+
+                <label for="selected-language">Programovací jazyk:</label>
+                <div class="input-group">
+                    <select id="selected-language" name="selected-language" class="form-control">
+
+                        <?php foreach (getLanguages() as $lang): ?>
+                        <option value="<?php echo $lang->id; ?>"<?php echo (strcmp($lang->id, $prefferedLang) === 0 ? ' selected="selected"' : ''); ?>><?php echo $lang->name; ?> (<?php echo $lang->version; ?>)</option>
+                        <?php endforeach; ?>
+
+                    </select>
+
+                    <a href="#" class="btn btn-info btn-large input-group-addon active lang-url">
+                        <span class="glyphicon glyphicon-console" aria-hidden="true"></span>
+                        Ukázka v jazyce
+                        <strong class="lang-name"></strong>
+                    </a>
+                </div>
+                
+                <?php if(user_allowed_reference($user)): ?>
+                <div class="form-group highlight">
+                    <input type="submit" class="btn btn-success btn-large" value="Spustit referenční řešení" name="reference-solution" id="reference-solution"/>
+                    <label for="reference-solution">
+                        Spustí referenční řešení úlohy a vygeneruje vstupní a výstupní soubory
+                    </label>
+                </div>
+                <?php endif;?>
+
+                <div class="input-group" id="source-code-example-holder" style="display: none;">
+                    <label for="source-code-example">Ukázka v jazyce <strong class="lang-name"></strong></label>
+                    <pre><code id="source-code-example"></code></pre>
+                </div>
+
+                <div class="form-group">
+                    <label for="comment">Zdrojový kód:</label>
+                    <textarea class="form-control" rows="20" name="source-code" id="source-code"><?php echo $prefferedSource; ?></textarea>
+                </div>
+
+                <input type="submit" class="btn btn-success btn-large" value="Odevzdat řešení"/>
+            </form>
+        <?php endif; ?>
       </div>
     </div>
 

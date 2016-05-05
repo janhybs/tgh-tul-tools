@@ -10,15 +10,15 @@ import os, sys, json
 
 parser = OptionParser()
 parser.add_option("-p", "--program-size", dest="size", help="program size", default=None)
-parser.add_option("-v", "--validate", action="store_true", dest="validate", help="program size", default=None,)
-parser.add_option("-r", dest="rand", action="store_true", default=False, help="Use non-deterministic algo")
+parser.add_option("-v", "--validate", action="store_true", dest="validate", help="program size", default=None)
+parser.add_option("-r", dest="rand", default=False, help="Use non-deterministic algo")
 
 options, args = parser.parse_args()
 
 random.seed(1234)
 
 if options.rand:
-    random.seed()
+    random.seed(options.rand)
 
 if options.size is not None:
     for i in range(int(options.size)):

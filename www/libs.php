@@ -229,8 +229,10 @@ class JobJson {
         $this->results      = array();
         
         $results            = JobJson::get($json, 'result', array());
-        foreach ($results as $key => $result) {
-            array_push($this->results, new JobJsonResult($this, $result));
+        if (is_array($results)) {
+            foreach ($results as $key => $result) {
+                array_push($this->results, new JobJsonResult($this, $result));
+            }
         }
     }
 }
@@ -253,7 +255,6 @@ class JobJsonResult {
     public $result;
     public $result_str;
     
-    
     public $details;
     public $duration;
     public $duration_str;
@@ -266,18 +267,17 @@ class JobJsonResult {
         $this->random       = JobJson::get($info, 'random', FALSE);
         $this->problem_size = JobJson::get($info, 'problem_size', NULL);
         $this->result       = JobJson::get($result, 'result', JobResult::UNKNOWN_ERROR); 
-        $this->duration = JobJson::get($result, 'duration', 'NaN');
+        $this->duration     = JobJson::get($result, 'duration', 'NaN');
+        $this->command      = JobJson::get($result, 'command', '');
 
         $this->class_str = $this->result <= JobResult::CORRECT_OUTPUT ? 'success' : 'danger';        
         $this->result_str   = JobResult::toString($this->result);
-        $this->problem_size_str = $this->random ? '-r ' : '';
-        $this->random_str       = $this->problem_size ? '-p ' . $this->problem_size : '';
         $this->duration_str = sprintf("%1.3f ms", $this->duration);
-
+        $this->command_str  = explode( '/', preg_replace('/["\']+/i', '', $this->command));
+        $this->command_str  = 'Command: ' . end($this->command_str) . "\n";
+        
         $tmp = NULL;
-        $this->details  = '';
-        if ($this->problem_size !== NULL)
-            $this->details .= 'Args: ' . trim(sprintf("%s%s", $this->problem_size_str, $this->random_str)) . "\n";
+        $this->details  = $this->command_str;
             
         if($tmp=JobJson::get($result, 'method')) 
             $this->details .= "Metoda: $tmp\n";
@@ -291,6 +291,7 @@ class JobJsonResult {
             else
                 $this->details .= "Porovnání: \n" . $tmp . "\n";
         }
+        $this->details = trim($this->details);
 
         # IO files
         $this->input = JobJson::get($result, 'input');

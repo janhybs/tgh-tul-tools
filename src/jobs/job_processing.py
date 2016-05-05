@@ -3,11 +3,12 @@
 # author:   Jan Hybs
 from collections import namedtuple
 from subprocess import PIPE, Popen
-import os, sys, threading
+import os, sys, threading, random
 from utils.globals import read, ensure_path, Config
+from utils.logger import Logger
 from utils.timer import Timer
 
-MAX_DURATION = 60
+from config import max_wait_time
 
 
 class DynamicLanguage(object):
@@ -22,15 +23,15 @@ class DynamicLanguage(object):
     def compile(self):
         return self.processor.compile()
 
-    def run(self, random=False, validate=None, prepare=None):
+    def run(self, rnd=False, validate=None, prepare=None):
         actions = self.processor.run()
         dyn_action = actions[-1]
 
         if prepare:
             dyn_action += " -p {}".format(prepare)
 
-        if random:
-            dyn_action += " -r"
+        if rnd:
+            dyn_action += " -r {}".format(random.randint(1,10**10))
 
         if validate:
             dyn_action += ' -v "{}" "{}"'.format(*validate)
@@ -65,6 +66,7 @@ class Command(object):
         self.args = args
         self.command = '; '.join(args)
         self.timer = Timer()
+        self.terminated = False
 
         self.info = None
 
@@ -83,15 +85,49 @@ class Command(object):
         self.out.close()
         self.err.close()
 
-    def run(self):
+    def _run(self, timeout):
+        timeout = min([max_wait_time, timeout])
+
+        def target():
+            Logger.instance().info('Running command with time limit {:1.2f} s: {}'.format(timeout, self.command))
+            self.process = Popen([self.command], stdout=self.out, stderr=self.err, stdin=self.inn, shell=True)
+            self.process.communicate()
+            Logger.instance().info('Command finished')
+
+        thread = threading.Thread(target=target)
+        thread.start()
+        thread.join(timeout)
+        if thread.is_alive():
+            Logger.instance().info('Terminating process')
+            self.terminated = True
+            self.process.terminate()
+            self.process.kill()
+            thread.join()
+
+    def run(self, timeout=60):
+        # empty command such as interpret language compilation
+        if not self.command:
+            return Command.CommandResult(
+                exit=0,
+                process=None,
+                duration=0,
+                info=dict(
+                    terminated=False,
+                    returncode=0,
+                    error='',
+                    output=self.out_file,
+                    input=self.inn_file,
+                    duration=0
+                )
+            )
         self.open_streams()
         self.timer.tick()
-        self.process = Popen([self.command], stdout=self.out, stderr=self.err, stdin=self.inn, shell=True)
-        self.process.communicate()
+        self._run(timeout)
         self.timer.tock()
         self.close_streams()
 
         self.info = dict(
+            terminated=self.terminated,
             returncode=self.process.returncode,
             error=read(self.err_file),
             output=self.out_file,
