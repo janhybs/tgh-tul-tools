@@ -244,6 +244,7 @@ class JobJsonResult {
     public $input_download = FALSE;
     public $output_download = FALSE;
     public $reference_download = FALSE;
+    public $error_download = FALSE;
     
     public $id;
     public $random;
@@ -274,24 +275,28 @@ class JobJsonResult {
         $this->result_str   = JobResult::toString($this->result);
         $this->duration_str = sprintf("%1.3f ms", $this->duration);
         $this->command_str  = explode( '/', preg_replace('/["\']+/i', '', $this->command));
-        $this->command_str  = 'Command: ' . end($this->command_str) . "\n";
+        $this->command_str  = 'Příkaz: ' . end($this->command_str) . "\n";
         
         $tmp = NULL;
         $this->details  = $this->command_str;
-            
-        if($tmp=JobJson::get($result, 'method')) 
+        
+        $tmp=JobJson::get($result, 'method');
+        if($tmp !== NULL) 
             $this->details .= "Metoda: $tmp\n";
             
-        if($tmp=JobJson::get($result, 'error'))
+        $tmp = JobJson::get($result, 'error');
+        if($tmp !== NULL) 
             $this->details .= "Error: $tmp\n";
             
-        if($tmp=JobJson::get($result, 'comparison')){
+        $tmp = JobJson::get($result, 'comparison');
+        if($tmp !== NULL) {
             if (is_object($tmp))
                 $this->details .= "Porovnání: \n" . format_json($tmp) . "\n";
             else
                 $this->details .= "Porovnání: \n" . $tmp . "\n";
         }
         $this->details = trim($this->details);
+        $this->details = str_replace(ROOT, '.', $this->details);
 
         # IO files
         $this->input = JobJson::get($result, 'input');
@@ -308,11 +313,21 @@ class JobJsonResult {
         
         # general output depends on reference flag
         if ($jobJson->reference) {
-            if ($this->output !== NULL)
+            if ($this->output !== NULL) {
                 $this->output_download = $jobJson->getRefUrl($this->output);
-        } else {
-            if ($this->output !== NULL)
+            
+                $e = replace_extension($this->output, '.err');
+                if (file_exists($e))
+                    $this->error_download = $jobJson->getRefUrl($e);
+            }
+    } else {
+            if ($this->output !== NULL) {
                 $this->output_download = $jobJson->getDataUrl($this->output, join_paths($jobJson->attempt_dir, 'output'));
+                
+                $e = replace_extension($this->output, '.err');
+                if (file_exists($e))
+                    $this->error_download = $jobJson->getDataUrl($e, join_paths($jobJson->attempt_dir, 'output')); 
+            }
         }
     }
 }
@@ -384,4 +399,11 @@ function format_json($json_, $html = false, $tabspaces = null) {
     }
 
     return $result;
+}
+
+
+function replace_extension($url, $ext) {
+    if (!$url)
+        return $url;
+    return preg_replace('/\.[^.]+$/', $ext, $url);
 }
