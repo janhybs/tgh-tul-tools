@@ -186,7 +186,7 @@ class LanguageCS(LanguageProcess):
     def compile(self):
         return [
             'cd "{r.root}"'.format(r=self.request),
-            '{r.lang.compile} "{r.filename}"'.format(r=self.request)
+            '{r.lang.compile} "{r.filename}" -o main'.format(r=self.request)
         ]
 
     def run(self):
