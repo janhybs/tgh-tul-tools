@@ -217,11 +217,6 @@ class LanguagePascal(LanguageProcess):
             '{r.lang.compile} "{r.filename}"'.format(r=self.request)
         ]
 
-    def run(self):
-        return [
-            '{r.lang.run} "{r.main_file_name}"'.format(r=self.request)
-        ]
-
 
 class LanguagePython(LanguageProcess):
     def compile(self):
