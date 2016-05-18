@@ -278,8 +278,8 @@ class JobJsonResult {
         $this->duration_str = sprintf("%1.3f ms", $this->duration);
         $this->command_str  = explode( '/', preg_replace('/["\']+/i', '', $this->command));
         $this->command_str  = end($this->command_str);
-        if (!empty(trim($this->command_str)))
-            $this->command_str = 'Příkaz: ' . $this->command_str . "\n";
+        // if (!empty(trim($this->command_str)))
+        $this->command_str = 'Příkaz: ' . $this->command_str . "\n";
             
         $tmp = NULL;
         $this->details  = empty($this->command_str) ? "<žádné informace>" : $this->command_str;
