@@ -17,7 +17,7 @@ define ('CONFIG_ROOT',  $jsonConfig->config);
 
 
 define('SERVICE_DEBUG', TRUE);
-define('MAX_WAIT_TIME', 65);
+define('MAX_WAIT_TIME', 75);
 
 class JobResult {
     const OK                        = 0;

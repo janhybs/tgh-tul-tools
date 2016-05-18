@@ -4,7 +4,7 @@
 from collections import namedtuple
 from subprocess import PIPE, Popen
 import os, sys, threading, random
-from utils.globals import read, ensure_path, Config
+from utils.globals import read, ensure_path, Config, GlobalTimeout
 from utils.logger import Logger
 from utils.timer import Timer
 
@@ -96,11 +96,15 @@ class Command(object):
 
         thread = threading.Thread(target=target)
         thread.start()
-        thread.join(timeout)
+        thread.join(GlobalTimeout.time_left())
         if thread.is_alive():
             Logger.instance().info('Terminating process')
             self.terminated = True
-            self.process.terminate()
+            self.global_terminate = GlobalTimeout.time_left() < 0
+            try:
+                self.process.terminate()
+            except Exception as e:
+                pass
             try:
                 self.process.kill()
             except Exception as e:
@@ -137,6 +141,9 @@ class Command(object):
             input=self.inn_file,
             duration=self.timer.duration*1000,
         )
+        # save global termination
+        GlobalTimeout.decrease(self.timer.duration)
+        self.info['global_terminated'] = self.terminated and GlobalTimeout.invalid()
 
         return Command.CommandResult(exit=self.process.returncode, info=self.info, process=self.process, duration=self.timer.duration*1000)
 
