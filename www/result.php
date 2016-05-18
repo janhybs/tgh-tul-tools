@@ -199,7 +199,7 @@ if (SERVICE_DEBUG)
                                     echo get_download_button($jjj->input_download, 'I', 'Vstupní soubor', FALSE, 'btn-default');
                                     echo get_download_button($jjj->output_download, 'O', 'Výstupní soubor', FALSE, 'btn-'.$jjj->class_str);
                                     echo get_download_button($jjj->reference_download, 'R', 'Referenční výstupní soubor', TRUE, 'btn-default');
-                                    echo get_download_button($jjj->error_download, '.err', 'E', 'Chybový výstup', TRUE, 'btn-danger');
+                                    echo get_download_button($jjj->error_download, 'E', 'Chybový výstup', TRUE, 'btn-danger');
                                   ?>
                              </div>
                          </td>

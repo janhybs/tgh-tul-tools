@@ -2,9 +2,13 @@
 # -*- coding: utf-8 -*-
 # author:   Jan Hybs
 
-import os, sys, json, random
+import os
+import threading
+import time
+import datetime
+
 from jobs.job_processing import DynamicLanguage, Command, LangMap
-from utils.globals import ProcessException, remove_empty, compare, read, tryjson, Config, ensure_path
+from utils.globals import ProcessException, remove_empty, compare, tryjson, Config, ensure_path, GlobalTimeout
 from utils.logger import Logger
 from config import wait_timescale
 
@@ -21,6 +25,8 @@ class JobResult(object):
     COMPILE_ERROR = 10
     RUN_ERROR = 20
     TIMEOUT = 30
+    GLOBAL_TIMEOUT = 40
+    SKIPPED = 50
     UNKNOWN_ERROR = 100
 
     _dict1 = dict()
@@ -38,6 +44,8 @@ class JobResult(object):
             JobResult._dict1[JobResult.COMPILE_ERROR] = 'E'
             JobResult._dict1[JobResult.RUN_ERROR] = 'E'
             JobResult._dict1[JobResult.TIMEOUT] = 'E'
+            JobResult._dict1[JobResult.GLOBAL_TIMEOUT] = 'E'
+            JobResult._dict1[JobResult.SKIPPED] = 'E'
 
             JobResult._dict1[JobResult.RUN_OK] = 'O'
             JobResult._dict1[JobResult.OK] = 'O'
@@ -56,6 +64,8 @@ class JobResult(object):
             JobResult._dict2[JobResult.COMPILE_ERROR] = 'ER'
             JobResult._dict2[JobResult.RUN_ERROR] = 'ER'
             JobResult._dict1[JobResult.TIMEOUT] = 'ER'
+            JobResult._dict1[JobResult.GLOBAL_TIMEOUT] = 'ER'
+            JobResult._dict1[JobResult.SKIPPED] = 'ER'
 
             JobResult._dict2[JobResult.RUN_OK] = 'OK'
             JobResult._dict2[JobResult.OK] = 'OK'
@@ -64,21 +74,40 @@ class JobResult(object):
 
 
 class JobControl(object):
+    global_time_limit = 5
     root = None
+    monitor_thread = None
 
-    @staticmethod
-    def process(request):
+    @classmethod
+    def process(cls, request):
         """
         :type request: jobs.job_request.JobRequest
         """
-        ensure_path(os.path.join(request.root, 'output'), False)
 
+        # reset global time for this solution
+        GlobalTimeout.reset()
+
+        # prepare output
+        ensure_path(os.path.join(request.root, 'output'), False)
         if request.reference:
             job = ReferenceJob(request)
         else:
             job = StudentJob(request)
 
-        return job.process()
+        result = job.process()
+
+        return result
+
+    @classmethod
+    def monitor(cls):
+        def target():
+            start_time = time.time()
+            while True:
+                print datetime.timedelta(seconds=int(time.time()-start_time))
+                time.sleep(0.5)
+
+        monitor_thread = threading.Thread(name='monitor-thread', target=target)
+        monitor_thread.start()
 
 
 class StudentJob(object):
@@ -110,12 +139,22 @@ class StudentJob(object):
         """
         :type input_spec: jobs.job_request.ProblemInput
         """
+        result_base = dict(info=input_spec.dict().copy())
+        result_base['info']['id'] = case_id
+
+        if GlobalTimeout.invalid():
+            result_base.update(
+                result=JobResult.SKIPPED,
+                duration=0.0
+            )
+            return result_base
+
         ref_out_file = os.path.join(self.program_root, 'output', '{}.out'.format(case_id))
         inn_file = os.path.join(self.program_root, 'input', '{}.in'.format(case_id))
         out_file = os.path.join(self.r.root, 'output', '{}.out'.format(case_id))
         err_file = os.path.join(self.r.root, 'output', '{}.err'.format(case_id))
 
-        result_base = dict(info=input_spec.dict().copy())
+
 
         if not os.path.exists(inn_file):
             Logger.instance().warning('    {} Input file does not exists {}'.format(case_id, inn_file))
@@ -129,8 +168,13 @@ class StudentJob(object):
         run_result = run_command.run(input_spec.time * wait_timescale)
 
         result_base.update(run_result.info)
-        result_base['info']['id'] = case_id
         result_base['command'] = run_args[-1] if len(run_args) > 0 else '<no command>'
+
+        # timeout
+        if run_result.info['global_terminated']:
+            result_base['result'] = JobResult.GLOBAL_TIMEOUT
+            Logger.instance().info('    {} Command was terminated (global timeout)!'.format(case_id))
+            return result_base
 
         # timeout
         if run_result.info['terminated']:
@@ -378,7 +422,7 @@ class ReferenceJob(object):
             return info
         else:
             info = run_result.info
-            info['result'] = JobResult.WRONG_OUTPUT
+            info['result'] = JobResult.CORRECT_OUTPUT
             info['method'] = 'ref-script'
             info['comparison'] = tryjson(out_file)
             Logger.instance().debug('    {} correct output[S]'.format(case_id))

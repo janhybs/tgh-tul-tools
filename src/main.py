@@ -130,7 +130,7 @@ class TGHProcessor(Daemon):
             main_result['summary'] = summary
             main_result['attempt_dir'] = dest_dir
             main_result['result'] = result
-            main_result['max_result'] = max_result = max(plucklib.pluck(result, 'result'))
+            main_result['max_result'] = self.get_max_result(result)
 
             # save results
             result_json = json.dumps(main_result, indent=4)
@@ -144,13 +144,18 @@ class TGHProcessor(Daemon):
             Logger.instance().info('Summary: \n{}'.format(summary))
             return summary, attempt_dir
 
-    @staticmethod
-    def get_result_letter(result):
+    @classmethod
+    def get_max_result(cls, result):
         try:
-            max_result = max(plucklib.pluck(result, 'result'))
+            results = [x for x in plucklib.pluck(result, 'result') if x not in (JobResult.SKIPPED, JobResult.GLOBAL_TIMEOUT)]
+            max_result = max(results)
         except:
             max_result = JobResult.UNKNOWN_ERROR
-        return JobResult.reverse1(max_result)
+        return max_result
+
+    @classmethod
+    def get_result_letter(cls, result):
+        return JobResult.reverse1(cls.get_max_result(result))
 
     @staticmethod
     def get_result_summary(job, result, attempt_no):

@@ -4,7 +4,7 @@ define ('ROOT',                     '/var/www/html/tgh.nti.tul.cz');
 define ('SERVER_ROOT',              'https://tgh.nti.tul.cz');
 $config = file_get_contents(ROOT .  '/config/config-tgh.json');
 
-// define ('ROOT', realpath($_SERVER["DOCUMENT_ROOT"]) . '/test/tgh');
+// define ('ROOT', '/var/www/html/test/tgh');
 // define ('SERVER_ROOT', 'http://hybs.nti.tul.cz/test/tgh');
 // $config = file_get_contents(ROOT . '/config/config-hybs.json');
 
@@ -17,7 +17,7 @@ define ('CONFIG_ROOT',  $jsonConfig->config);
 
 
 define('SERVICE_DEBUG', TRUE);
-define('MAX_WAIT_TIME', 65);
+define('MAX_WAIT_TIME', 75);
 
 class JobResult {
     const OK                        = 0;
@@ -29,6 +29,8 @@ class JobResult {
     const COMPILE_ERROR             = 10;
     const RUN_ERROR                 = 20;
     const TIMEOUT                   = 30;
+    const GLOBAL_TIMEOUT            = 40;
+    const SKIPPED                   = 50;
     const UNKNOWN_ERROR             = 100;
     
     public static function toString($value) {
@@ -41,6 +43,8 @@ class JobResult {
         if ($value == JobResult::COMPILE_ERROR) return 'Chyba při kompilaci';
         if ($value == JobResult::RUN_ERROR) return 'Chyba při běhu';
         if ($value == JobResult::TIMEOUT) return 'Úloha nedoržela časový limit';
+        if ($value == JobResult::GLOBAL_TIMEOUT) return 'Úloha nedoržela globální časový limit';
+        if ($value == JobResult::SKIPPED) return 'Test byl přeskočen';
         return 'Neznámá chyba';
         
     }

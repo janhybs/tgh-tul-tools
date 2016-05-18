@@ -223,7 +223,7 @@ class JobJson {
         $this->is_valid     = $this->error === '';
         
         $this->attempt_dir  = JobJson::get($json, 'attempt_dir');
-        $this->max_result   = JobJson::get($job, 'max_result');
+        $this->max_result   = JobJson::get($json, 'max_result');
         $this->tmp_dir      = JobJson::get($job, 'tmp_dir');
         $this->reference    = JobJson::get($job, 'reference');
         $this->results      = array();
@@ -271,14 +271,18 @@ class JobJsonResult {
         $this->duration     = JobJson::get($result, 'duration', 'NaN');
         $this->command      = JobJson::get($result, 'command', '');
 
-        $this->class_str = $this->result <= JobResult::CORRECT_OUTPUT ? 'success' : 'danger';        
+        $this->class_str = $this->result <= JobResult::CORRECT_OUTPUT ? 'success' : 'danger';
+        if ($this->result == JobResult::SKIPPED)
+            $this->class_str = 'warning';
         $this->result_str   = JobResult::toString($this->result);
         $this->duration_str = sprintf("%1.3f ms", $this->duration);
         $this->command_str  = explode( '/', preg_replace('/["\']+/i', '', $this->command));
-        $this->command_str  = 'Příkaz: ' . end($this->command_str) . "\n";
-        
+        $this->command_str  = end($this->command_str);
+        if (!empty(trim($this->command_str)))
+            $this->command_str = 'Příkaz: ' . $this->command_str . "\n";
+            
         $tmp = NULL;
-        $this->details  = $this->command_str;
+        $this->details  = empty($this->command_str) ? "<žádné informace>" : $this->command_str;
         
         $tmp=JobJson::get($result, 'method');
         if($tmp !== NULL) 
