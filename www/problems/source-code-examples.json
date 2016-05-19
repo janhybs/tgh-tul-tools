@@ -6,6 +6,7 @@
         "CPP11": "#include <iostream>\n#include <string>\n\nusing namespace std;\n\nint main(int argc, char ** argv) {\n    while (!cin.eof()) {\n        string s;\n        cin >> s;\n        cout << s << endl;\n    }\n    return 0;\n}",
         "PASCAL": "Program znak;\nuses crt;\nvar veta : string;\nbegin\n    Readln(veta);\n    Writeln(veta);\n    while Length(veta) <> 0 do\n    begin\n        Readln(veta);\n        Writeln(veta);\n    end;\n    exit;\nend.",
         "PYTHON27": "import sys\nif __name__ == '__main__':\n    for line in sys.stdin:\n        print line.rstrip()\n    sys.exit (0)",
+        "PYTHON35": "import sys\nif __name__ == '__main__':\n    for line in sys.stdin:\n        print (line.rstrip())\n    sys.exit (0)",
         "CS": "using System;\n\npublic class Example\n{\n   public static void Main()\n   {\n      string line;\n      do { \n         line = Console.ReadLine();\n         if (line != null) \n            Console.WriteLine(line);\n      } while (line != null);   \n   }\n}"
     }
 }

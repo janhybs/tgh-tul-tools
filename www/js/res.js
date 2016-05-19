@@ -11,8 +11,13 @@ $( document ).ready(
             '0': 'Běh proběhl bez problémů',
             '1': 'Řešení je správné!',
             '3': 'Chybný výstup',
+            '5': 'Úloha nedodržela časový limit, ale řešení je správné',
+            '7': 'Úloha nedodržela časový limit a řešení je chybné',
             '10': 'Chyba při kompilaci',
             '20': 'Chyba při behu programu',
+            '30': 'Některá z úloh nedodržela časový limit',
+            '40': 'Nebyl dodržen globální časový limit',
+            '50': 'Některé úlohy byly přeskočeny',
             '100': 'Neznámá chyba',
         }
         var msg = msgs.hasOwnProperty (exitCode) ? msgs[exitCode] : msgs['100'];

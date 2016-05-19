@@ -199,6 +199,7 @@ if (SERVICE_DEBUG)
                                     echo get_download_button($jjj->input_download, 'I', 'Vstupní soubor', FALSE, 'btn-default');
                                     echo get_download_button($jjj->output_download, 'O', 'Výstupní soubor', FALSE, 'btn-'.$jjj->class_str);
                                     echo get_download_button($jjj->reference_download, 'R', 'Referenční výstupní soubor', TRUE, 'btn-default');
+                                    echo get_download_button($jjj->error_download, 'E', 'Chybový výstup', TRUE, 'btn-danger');
                                   ?>
                              </div>
                          </td>
@@ -207,9 +208,9 @@ if (SERVICE_DEBUG)
                    <?php endforeach; ?>
                 </table>
             <?php else: ?>
-                <h2>Server timout</h2>
+                <h2>Fatal error</h2>
                 <div class="alert alert-danger">
-                    <?php echo $jj->error; ?>
+                    <pre><?php echo trim($jj->error); ?></pre>
                 </div>
             <?php endif; ?>
             </div>

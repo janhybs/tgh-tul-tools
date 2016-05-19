@@ -35,3 +35,8 @@ chown -R $usr          ../www/jobs/.readme.md
 # copy links
 cp tgh-service /usr/bin/tgh-service
 cp tgh-watchdog /usr/bin/tgh-watchdog
+
+# restart services
+tgh-watchdog stop
+tgh-service stop
+tgh-watchdog start

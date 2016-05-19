@@ -8,6 +8,16 @@
   color: #a94442;
 }
 
+.alert-danger pre {
+    color: inherit;
+    background-color: inherit;
+    border: none;
+}
+.table-striped>tbody>tr:nth-of-type(odd),
+.table-striped>tbody>tr:nth-of-type(even) {
+    background-color: #f9f9f9;
+}
+
 .alert.info p {
   font-size: 1em;
 }
@@ -18,7 +28,7 @@
 
 .table td pre, .table td code {
     text-align: left;
-    font-size: 0.8em;
+    font-size: 0.7em;
 }
 
 .table a.disabled {

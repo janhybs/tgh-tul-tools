@@ -75,9 +75,9 @@ function join_paths() {
 
 function get_download_button($url, $link, $alt, $hide=FALSE, $cls="") {
     if (!$url)
-        return $hide ? '' : "<a href=\"#\" class=\"btn btn-default $cls disabled\" title=\"Soubor neexistuje\">$link</a>";
+        return $hide ? '' : "<a href=\"#\" class=\"btn btn-default $cls disabled\" target=\"_blank\" title=\"Soubor neexistuje\">$link</a>";
     
-    return "<a href=\"$url\" class=\"btn btn-default $cls\" title=\"$alt\">$link</a>";
+    return "<a href=\"$url\" class=\"btn btn-default $cls\" target=\"_blank\" title=\"$alt\">$link</a>";
 }
 
 
@@ -223,14 +223,16 @@ class JobJson {
         $this->is_valid     = $this->error === '';
         
         $this->attempt_dir  = JobJson::get($json, 'attempt_dir');
-        $this->max_result   = JobJson::get($job, 'max_result');
+        $this->max_result   = JobJson::get($json, 'max_result');
         $this->tmp_dir      = JobJson::get($job, 'tmp_dir');
         $this->reference    = JobJson::get($job, 'reference');
         $this->results      = array();
         
         $results            = JobJson::get($json, 'result', array());
-        foreach ($results as $key => $result) {
-            array_push($this->results, new JobJsonResult($this, $result));
+        if (is_array($results)) {
+            foreach ($results as $key => $result) {
+                array_push($this->results, new JobJsonResult($this, $result));
+            }
         }
     }
 }
@@ -242,6 +244,7 @@ class JobJsonResult {
     public $input_download = FALSE;
     public $output_download = FALSE;
     public $reference_download = FALSE;
+    public $error_download = FALSE;
     
     public $id;
     public $random;
@@ -252,7 +255,6 @@ class JobJsonResult {
     public $class_str;    
     public $result;
     public $result_str;
-    
     
     public $details;
     public $duration;
@@ -266,31 +268,39 @@ class JobJsonResult {
         $this->random       = JobJson::get($info, 'random', FALSE);
         $this->problem_size = JobJson::get($info, 'problem_size', NULL);
         $this->result       = JobJson::get($result, 'result', JobResult::UNKNOWN_ERROR); 
-        $this->duration = JobJson::get($result, 'duration', 'NaN');
+        $this->duration     = JobJson::get($result, 'duration', 'NaN');
+        $this->command      = JobJson::get($result, 'command', '');
 
-        $this->class_str = $this->result <= JobResult::CORRECT_OUTPUT ? 'success' : 'danger';        
+        $this->class_str = $this->result <= JobResult::CORRECT_OUTPUT ? 'success' : 'danger';
+        if ($this->result == JobResult::SKIPPED)
+            $this->class_str = 'warning';
         $this->result_str   = JobResult::toString($this->result);
-        $this->problem_size_str = $this->random ? '-r ' : '';
-        $this->random_str       = $this->problem_size ? '-p ' . $this->problem_size : '';
         $this->duration_str = sprintf("%1.3f ms", $this->duration);
-
-        $tmp = NULL;
-        $this->details  = '';
-        if ($this->problem_size !== NULL)
-            $this->details .= 'Args: ' . trim(sprintf("%s%s", $this->problem_size_str, $this->random_str)) . "\n";
+        $this->command_str  = explode( '/', preg_replace('/["\']+/i', '', $this->command));
+        $this->command_str  = end($this->command_str);
+        // if (!empty(trim($this->command_str)))
+        $this->command_str = 'Příkaz: ' . $this->command_str . "\n";
             
-        if($tmp=JobJson::get($result, 'method')) 
+        $tmp = NULL;
+        $this->details  = empty($this->command_str) ? "<žádné informace>" : $this->command_str;
+        
+        $tmp=JobJson::get($result, 'method');
+        if($tmp !== NULL) 
             $this->details .= "Metoda: $tmp\n";
             
-        if($tmp=JobJson::get($result, 'error'))
+        $tmp = JobJson::get($result, 'error');
+        if($tmp !== NULL) 
             $this->details .= "Error: $tmp\n";
             
-        if($tmp=JobJson::get($result, 'comparison')){
+        $tmp = JobJson::get($result, 'comparison');
+        if($tmp !== NULL) {
             if (is_object($tmp))
                 $this->details .= "Porovnání: \n" . format_json($tmp) . "\n";
             else
                 $this->details .= "Porovnání: \n" . $tmp . "\n";
         }
+        $this->details = trim($this->details);
+        $this->details = str_replace(ROOT, '.', $this->details);
 
         # IO files
         $this->input = JobJson::get($result, 'input');
@@ -307,11 +317,21 @@ class JobJsonResult {
         
         # general output depends on reference flag
         if ($jobJson->reference) {
-            if ($this->output !== NULL)
+            if ($this->output !== NULL) {
                 $this->output_download = $jobJson->getRefUrl($this->output);
-        } else {
-            if ($this->output !== NULL)
+            
+                $e = replace_extension($this->output, '.err');
+                if (file_exists($e))
+                    $this->error_download = $jobJson->getRefUrl($e);
+            }
+    } else {
+            if ($this->output !== NULL) {
                 $this->output_download = $jobJson->getDataUrl($this->output, join_paths($jobJson->attempt_dir, 'output'));
+                
+                $e = replace_extension($this->output, '.err');
+                if (file_exists($e))
+                    $this->error_download = $jobJson->getDataUrl($e, join_paths($jobJson->attempt_dir, 'output')); 
+            }
         }
     }
 }
@@ -383,4 +403,11 @@ function format_json($json_, $html = false, $tabspaces = null) {
     }
 
     return $result;
+}
+
+
+function replace_extension($url, $ext) {
+    if (!$url)
+        return $url;
+    return preg_replace('/\.[^.]+$/', $ext, $url);
 }

@@ -3,6 +3,7 @@
 # author:   Jan Hybs
 
 import json, os
+import random
 
 
 class Config(object):
@@ -70,8 +71,6 @@ class ProcessException(Exception):
     def __init__(self, info):
         super(ProcessException, self).__init__()
         self.info = info
-        import json
-        print json.dumps(info, indent=4)
 
 
 def read(f):
@@ -133,3 +132,34 @@ def tryjson(f):
         return json.loads(content)
     except Exception as e:
         return content
+
+
+def random_range(max, count, min=1):
+    r = list(range(min, max + min))
+    random.shuffle(r)
+    return r[0:count]
+
+
+class GlobalTimeout(object):
+    _global_time = 2.5
+    _out_of_time = .1
+    _time_left = _global_time
+
+    @classmethod
+    def reset(cls):
+        cls._time_left = cls._global_time
+        print 'Time reset:     [remaining: {:1.2f}]'.format(cls.time_left())
+
+    @classmethod
+    def decrease(cls, duration):
+        cls._time_left -= duration
+        print 'Time decreased: [remaining: {:1.2f}]'.format(cls.time_left())
+
+    @classmethod
+    def time_left(cls):
+        return 0.01 if cls.invalid() else cls._time_left
+
+
+    @classmethod
+    def invalid(cls):
+        return cls._time_left < cls._out_of_time

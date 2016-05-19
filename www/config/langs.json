@@ -36,7 +36,7 @@
         "id": "JAVA",
         "extension": "java",
         "name": "Java",
-        "version": "java 1.8.0_45",
+        "version": "java 1.8.0_91",
         "compile": "/etc/alternatives/java_sdk_1.8.0/bin/javac",
         "run": "/etc/alternatives/java_sdk_1.8.0/bin/java"
     },
@@ -54,7 +54,14 @@
         "name": "Python",
         "version": "python 2.7.6",
         "compile": false,
-        "run": "python",
-        "runa": "/usr/local/bin/python2.7"
+        "run": "python2.7"
+    },
+    "PYTHON35": {
+        "id": "PYTHON35",
+        "extension": "py",
+        "name": "Python",
+        "version": "python 3.5.0",
+        "compile": false,
+        "run": "python3.5"
     }
 }

@@ -77,13 +77,12 @@ class TGHProcessor(Daemon):
                         os.unlink(job.delete_me_file)
                         result = JobControl.process(job)
                     except ProcessException as e:
-                        result = [e.info]
+                        result = e.info
                     except Exception as e:
                         result = dict(
                             result=JobResult.UNKNOWN_ERROR,
                             error=str(e),
                         )
-                        result = [result]
 
                     # add info about result
                     self.save_result(job, result)
@@ -92,7 +91,7 @@ class TGHProcessor(Daemon):
             time.sleep(runner_sleep)
 
     def save_result(self, job, result):
-        # copy files
+
         user_dir = os.path.join(Config.data, job.nameuser, job.problem.id)
         ensure_path(user_dir, is_file=False)
 
@@ -105,35 +104,58 @@ class TGHProcessor(Daemon):
         dest_output_dir = os.path.join(dest_dir)
         ensure_path(dest_output_dir, is_file=False)
 
-        summary = self.get_result_summary(job, result, next_attempt).encode('utf8')
-        with open(os.path.join(dest_dir, 'result.txt'), 'wb') as fp:
-            fp.write(summary)
-
-        # create global result
-        main_result = dict()
-        main_result['summary'] = summary
-        main_result['attempt_dir'] = dest_dir
-        main_result['result'] = result
-        main_result['max_result'] = max_result = max(plucklib.pluck(result, 'result'))
-
-        # save results
-        result_json = json.dumps(main_result, indent=4)
-        with open(job.result_file, 'w') as fp:
-            fp.write(result_json)
-
-        call(['cp', '-r', job.output_root, dest_output_dir])
-        call(['cp', job.result_file, dest_dir])
-        call(['cp', job.main_file, dest_dir])
+        # set permission so PHP can delete files
         call(['chmod', '-R', '777', job.root])
 
-        Logger.instance().info('Summary: \n{}'.format(summary))
+        if type(result) is not list:
+            Logger.instance().info('Error during execution! ')
+            Logger.instance().info(result.get('error', 'Unknown error'))
 
-        return summary, attempt_dir
+            result_json = json.dumps(result, indent=4)
+            with open(job.result_file, 'w') as fp:
+                fp.write(result_json)
 
-    @staticmethod
-    def get_result_letter(result):
-        max_result = max(plucklib.pluck(result, 'result'))
-        return JobResult.reverse1(max_result)
+            call(['cp', '-r', job.output_root, dest_output_dir])
+            call(['cp', job.result_file, dest_dir])
+            call(['cp', job.main_file, dest_dir])
+
+            return None, None
+        else:
+            summary = self.get_result_summary(job, result, next_attempt).encode('utf8')
+            with open(os.path.join(dest_dir, 'result.txt'), 'wb') as fp:
+                fp.write(summary)
+
+            # create global result
+            main_result = dict()
+            main_result['summary'] = summary
+            main_result['attempt_dir'] = dest_dir
+            main_result['result'] = result
+            main_result['max_result'] = self.get_max_result(result)
+
+            # save results
+            result_json = json.dumps(main_result, indent=4)
+            with open(job.result_file, 'w') as fp:
+                fp.write(result_json)
+
+            call(['cp', '-r', job.output_root, dest_output_dir])
+            call(['cp', job.result_file, dest_dir])
+            call(['cp', job.main_file, dest_dir])
+
+            Logger.instance().info('Summary: \n{}'.format(summary))
+            return summary, attempt_dir
+
+    @classmethod
+    def get_max_result(cls, result):
+        try:
+            results = [x for x in plucklib.pluck(result, 'result') if x not in (JobResult.SKIPPED, JobResult.GLOBAL_TIMEOUT)]
+            max_result = max(results)
+        except:
+            max_result = JobResult.UNKNOWN_ERROR
+        return max_result
+
+    @classmethod
+    def get_result_letter(cls, result):
+        return JobResult.reverse1(cls.get_max_result(result))
 
     @staticmethod
     def get_result_summary(job, result, attempt_no):
