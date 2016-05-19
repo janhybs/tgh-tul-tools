@@ -225,7 +225,17 @@ class LanguagePascal(LanguageProcess):
         ]
 
 
-class LanguagePython(LanguageProcess):
+class LanguagePython27(LanguageProcess):
+    def compile(self):
+        return []
+
+    def run(self):
+        return [
+            '{r.lang.run} "{r.main_file}"'.format(r=self.request)
+        ]
+
+
+class LanguagePython35(LanguageProcess):
     def compile(self):
         return []
 
@@ -243,7 +253,8 @@ class LangMap(object):
         'CS':LanguageCS,
         'JAVA':LanguageJava,
         'PASCAL':LanguagePascal,
-        'PYTHON27':LanguagePython,
+        'PYTHON27':LanguagePython27,
+        'PYTHON35':LanguagePython35,
     }
     @staticmethod
     def get(name):
