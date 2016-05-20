@@ -141,7 +141,7 @@ def random_range(max, count, min=1):
 
 
 class GlobalTimeout(object):
-    _global_time = 2.5
+    _global_time = 60
     _out_of_time = .1
     _time_left = _global_time
 
