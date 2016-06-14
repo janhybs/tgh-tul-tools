@@ -10,8 +10,8 @@ $( document ).ready(
         var msgs = {
             '0': 'Běh proběhl bez problémů',
             '1': 'Řešení je správné!',
-            '3': 'Chybný výstup',
-            '5': 'Úloha nedodržela časový limit, ale řešení je správné',
+            '3': 'Úloha nedodržela časový limit, ale řešení je správné',
+            '5': 'Chybný výstup',
             '7': 'Úloha nedodržela časový limit a řešení je chybné',
             '10': 'Chyba při kompilaci',
             '20': 'Chyba při behu programu',
@@ -26,7 +26,6 @@ $( document ).ready(
         var cls = 'alert-success';
 
 
-        
         if (Number(exitCode) > 1) {
             cls = 'alert-danger';
         }

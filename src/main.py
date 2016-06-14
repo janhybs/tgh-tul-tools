@@ -3,6 +3,8 @@
 # author:   Jan Hybs
 
 import os, sys, time, logging, json
+
+from simplejson import JSONEncoder
 from jobs.job_control import JobControl, JobResult
 from jobs.job_request import JobRequest
 from utils import plucklib
@@ -13,6 +15,10 @@ from utils.logger import Logger
 from subprocess import call
 
 from config import runner_pidfile, runner_sleep
+
+# utf hax
+reload(sys)
+sys.setdefaultencoding("utf-8")
 
 
 class TGHProcessor(Daemon):
@@ -91,15 +97,19 @@ class TGHProcessor(Daemon):
             time.sleep(runner_sleep)
 
     def save_result(self, job, result):
-
         user_dir = os.path.join(Config.data, job.nameuser, job.problem.id)
         ensure_path(user_dir, is_file=False)
 
+        # get max status from all cases (excluding global timeout and skipped)
+        max_status = self.get_max_result(result)
+
+        # prepare user directory
         attempts = os.listdir(user_dir)
         attempt_no = [int(x.split("-")[0]) for x in attempts] or [0]
         next_attempt = max(attempt_no) + 1
-        attempt_dir = '{:02d}-{}-{}'.format(next_attempt, job.username, self.get_result_letter(result))
+        attempt_dir = '{:02d}-{}-{}'.format(next_attempt, job.username, max_status.shortname)
 
+        # ensure it exists
         dest_dir = os.path.join(user_dir, attempt_dir)
         dest_output_dir = os.path.join(dest_dir)
         ensure_path(dest_output_dir, is_file=False)
@@ -111,7 +121,7 @@ class TGHProcessor(Daemon):
             Logger.instance().info('Error during execution! ')
             Logger.instance().info(result.get('error', 'Unknown error'))
 
-            result_json = json.dumps(result, indent=4)
+            result_json = json.dumps(result, indent=4, cls=MyEncoder)
             with open(job.result_file, 'w') as fp:
                 fp.write(result_json)
 
@@ -133,29 +143,33 @@ class TGHProcessor(Daemon):
             main_result['max_result'] = self.get_max_result(result)
 
             # save results
-            result_json = json.dumps(main_result, indent=4)
+            result_json = json.dumps(main_result, indent=4, cls=MyEncoder)
             with open(job.result_file, 'w') as fp:
                 fp.write(result_json)
 
+            # copy files
             call(['cp', '-r', job.output_root, dest_output_dir])
             call(['cp', job.result_file, dest_dir])
             call(['cp', job.main_file, dest_dir])
 
+            # print summary into logger
             Logger.instance().info('Summary: \n{}'.format(summary))
             return summary, attempt_dir
 
     @classmethod
     def get_max_result(cls, result):
+        """
+        Extract result from all cases - GLOBAL_TIMEOUT and SKIPPED and
+        return max value (or UNKNOWN_ERROR if nothings left)
+        :rtype: jobs.job_control.JobResult.L
+        """
         try:
-            results = [x for x in plucklib.pluck(result, 'result') if x not in (JobResult.SKIPPED, JobResult.GLOBAL_TIMEOUT)]
+            results = {x for x in plucklib.pluck(result, 'result')}
+            result -= {JobResult.GLOBAL_TIMEOUT, JobResult.SKIPPED}
             max_result = max(results)
         except:
             max_result = JobResult.UNKNOWN_ERROR
         return max_result
-
-    @classmethod
-    def get_result_letter(cls, result):
-        return JobResult.reverse1(cls.get_max_result(result))
 
     @staticmethod
     def get_result_summary(job, result, attempt_no):
@@ -168,41 +182,66 @@ class TGHProcessor(Daemon):
         summary.append('')
 
         for res in result:
-            res_code = JobResult.reverse2(res['result'])
+            case_result = res['result']
+            case_code = case_result.longname
+            case_id = res['info'].get('id', 'unknown job')
+            duration = res['duration']
+            problem_size = res['info'].get('problem_size', None)
+            random = res['info'].get('random', False)
+            random = ' -r' if random else ''
+
+            # reference job
             if job.reference:
-                if res['info']['problem_size'] is None:
-                    info = '{res[info][id]}'.format(res=res)
+                if problem_size:
+                    info = u'  [{case_code}] sada {case_id:<20s} -p {problem_size}{random}'.format(**locals())
                 else:
-                    info = '{res[info][id]} (-p {res[info][problem_size]}{r})'.format(
-                        res=res, r=' -r' if res['info']['random'] else '')
-                summary.append(u'  [{}] sada {info:30s} {res[duration]:10.3f} ms'
-                               .format(res_code, res=res, job=job, info=info))
-            else:
-                summary.append(u'  [{}] sada {res[info][id]:20s} {res[duration]:10.3f} ms'
-                               .format(res_code, res=res, job=job))
+                    info = u'  [{case_code}] sada {case_id:<20s}'.format(**locals())
 
-            if res['result'] in (JobResult.COMPILE_ERROR, JobResult.RUN_ERROR, JobResult.UNKNOWN_ERROR):
-                summary.append('    Error: {res[error]}'.format(res=res))
+                summary.append(u'{info:60s}{duration:10.3f}'.format(**locals()))
+                continue
 
-            if res['result'] in (JobResult.WRONG_OUTPUT, ):
-                summary.append('       CHYBNY_VYSTUP na zaklade {}'.format(
-                    'porovnani souboru' if res['method'] == 'file-comparison' else 'vysledku referencniho skriptu'
-                ))
-                if res['method'] != 'file-comparison':
-                    summary.append('       {}'.format(json.dumps(res['output'])))
+            # standard student job
+            if not job.reference:
+                info = u'  [{case_code}] sada {case_id:<20s}'.format(**locals())
+                summary.append(u'{info:60s}{duration:10.3f}'.format(**locals()))
 
-        summary.append('')
-        summary.append('')
-        grade = 'SPRAVNE' if max(plucklib.pluck(result, 'result')) <= JobResult.CORRECT_OUTPUT else 'CHYBNE'
-        summary.append('Odevzdane reseni je ' + grade)
+                # add more info if case went wrong
+                if case_result > JobResult.TIMEOUT_CORRECT_OUTPUT:
+                    error = res.get('error', '').strip()
+                    if error:
+                        summary.append(u'{:7s}{error}'.format('', **locals()))
 
-        return '\n'.join(summary)
+                # in case of wrong output print what went wrong
+                if case_result is JobResult.WRONG_OUTPUT:
+                    if res.get('method') == 'file-comparison':
+                        method = u'CHYBNY_VYSTUP na zaklade porovnani souboru'
+                    else:
+                        method = u'CHYBNY_VYSTUP na zaklade vysledku referencniho skriptu'
+
+                    summary.append(u'{:7s}{method}'.format('', **locals()))
+
+        summary.append(u'')
+        summary.append(u'')
+
+        # final message
+        if max(plucklib.pluck(result, 'result')) <= JobResult.TIMEOUT_CORRECT_OUTPUT:
+            summary.append(u'Odevzdane reseni je SPRAVNE')
+        else:
+            summary.append(u'Odevzdane reseni je CHYBNE')
+
+        return u'\n'.join(summary)
 
 
 def usage(msg=''):
     if msg: print msg
     print 'usage: main.py start|stop|restart|debug <config.json>'
     sys.exit(1)
+
+
+class MyEncoder(JSONEncoder):
+    def default(self, o):
+        return str(o)
+
 
 if __name__ == "__main__":
     args = sys.argv[1:]
@@ -235,4 +274,3 @@ if __name__ == "__main__":
         Logger.instance().info('Stopping service...')
         processor.stop()
         sys.exit(0)
-
