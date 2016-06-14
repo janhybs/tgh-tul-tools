@@ -8,35 +8,57 @@
         "problem_size_description": "",
         "input": [
             {
-                "id": "WEBISL_0",
-                "time": 60
-            },
-            {
-                "id": "WEBISL_1",
-                "time": 60
-            },
-            {
-                "id": "WEBISL_2",
-                "time": 60
-            },
-            {
-                "id": "WEBISL_3",
-                "time": 60
-            },
-            {
-                "id": "WEBISL_4",
-                "time": 60
-            },
-            {
-                "id": "WEBISL_5",
                 "problem_size": 4,
+                "id": "WEBISL_case_1",
+                "time": 0.1
+            },
+            {
+                "problem_size": 6,
+                "id": "WEBISL_case_2",
+                "time": 0.1
+            },
+            {
+                "problem_size": 8,
+                "id": "WEBISL_case_3",
+                "time": 0.1
+            },
+            {
+                "problem_size": 10,
+                "id": "WEBISL_case_4",
+                "time": 0.1,
                 "random": true
             },
             {
-                "id": "WEBISL_6",
-                "problem_size": 6,
+                "problem_size": 100,
+                "id": "WEBISL_case_5",
+                "time": 0.1,
+                "random": true
+            },
+            {
+                "problem_size": 1000,
+                "id": "WEBISL_case_6",
+                "time": 0.2,
+                "random": false
+            },
+            {
+                "problem_size": 10000,
+                "id": "WEBISL_case_7",
+                "time": 1,
+                "random": false
+            },
+            {
+                "problem_size": 100000,
+                "id": "WEBISL_case_8",
+                "time": 10,
+                "random": false
+            },
+            {
+                "problem_size": 1000000,
+                "id": "WEBISL_case_9",
+                "time": 60,
                 "random": false
             }
+
         ]
     },
     "ELECTRIC": {
@@ -57,54 +79,134 @@
     "IDOS": {
         "id": "IDOS",
         "name": "IDOS",
-        "ref_script": "../generic",
+        "ref_script": "idos.py",
+        "ref_lang": "PYTHON27",
         "input": [
             {
                 "id": "IDOS_1",
-                "time": 60
+                "time": 0.4
             },
             {
                 "id": "IDOS_2",
-                "time": 60
+                "time": 0.4
+            },
+            {
+                "id": "IDOS_3",
+                "problem_size" : 10,
+                "time": 0.7
+            },
+            {
+                "id": "IDOS_4",
+                "problem_size" : 20,
+                "time": 1,
+                "random" : true
+            },
+            {
+                "id": "IDOS_5",
+                "problem_size" : 100,
+                "time": 6
+            },
+            {
+                "id": "IDOS_6",
+                "problem_size" : 200,
+                "time": 15
             }
+
         ]
     },
     "MINOS": {
         "id": "MINOS",
         "name": "Bludiste",
-        "ref_script": "../generic",
+        "ref_script": "minos.cpp",
+        "ref_lang": "CPP11",
         "input": [
             {
+                "_size": "3x3",
                 "id": "MINOS_1",
-                "time": 60
+                "time": 0.2
             },
             {
+                "_size" : "5x5",
                 "id": "MINOS_2",
-                "time": 60
+                "time": 0.2
             },
             {
                 "id": "MINOS_3",
-                "time": 60
+                "problem_size" : 20,
+                "time": 0.2,
+                "random" : false
             },
             {
                 "id": "MINOS_4",
-                "time": 60
+                "problem_size" : 30,
+                "time": 0.2,
+                "random" : true
             },
             {
                 "id": "MINOS_5",
-                "time": 60
+                "problem_size" : 100,
+                "time": 0.2
+            },
+            {
+                "id": "MINOS_6",
+                "problem_size" : 1000,
+                "time": 0.3
             }
         ]
     },
     "RELCONN": {
         "id": "RELCONN",
         "name": "Nejspolehlivejsi cesta",
-        "ref_script": "../generic",
+        "ref_script": "relconn_general.cc",
+        "ref_lang": "CPP11",
         "input": [
             {
+                "comment" : "problem size 6",
                 "id": "RELCONN_1",
+                "time": 1
+            },
+            {
+                "problem_size" : 8,
+                "id": "RELCONN_2",
+                "time": 1
+            },
+            {
+                "problem_size" : 9,
+                "id": "RELCONN_3",
+                "time": 1
+            },
+            {
+                "problem_size" : 8,
+                "id": "RELCONN_4",
+                "time": 1
+            },
+            {
+                "problem_size" : 11,
+                "id": "RELCONN_5",
+                "time": 1,
+                "random": true
+            },
+            {
+                "problem_size" : 100,
+                "id": "RELCONN_6",
+                "time": 2
+            },
+            {
+                "problem_size" : 1000,
+                "id": "RELCONN_7",
+                "time": 10
+            },
+            {
+                "problem_size" : 10000,
+                "id": "RELCONN_8",
+                "time": 60
+            },
+            {
+                "problem_size" : 50000,
+                "id": "RELCONN_8",
                 "time": 60
             }
+
         ]
     },
     "SEGMENT": {
@@ -131,18 +233,20 @@
         "problem_size_description": "",
         "input": [
             {
-                "id": "WEBISL_1",
+                "id": "TEST_1",
                 "problem_size": 5,
-                "random": true
+                "random": true,
+                "time" : 1
             },
             {
-                "id": "WEBISL_2",
+                "id": "TEST_2",
                 "problem_size": 150,
-                "random": false
+                "random": false,
+                "time" : 1
             },
             {
-                "id": "1",
-                "time": 60
+                "id": "TEST_3",
+                "time": 1
             }
         ]
     }
