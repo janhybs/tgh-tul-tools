@@ -1,7 +1,7 @@
 #include <sstream>
 
 #include <iostream>
-#include <fstream>
+#include <sstream>
 #include <cstdlib>
 #include <algorithm>
 #include <cmath>
@@ -124,10 +124,14 @@ void make_dataset(ostream &out_stream, uint size, uint min_ngh, uint max_ngh, ui
   vector<int> vtx_comp(size, -1); // components for vertices
   vector<vector<uint> > vtx_of_comp_t(n_comp); // vertexes of components (targeted)
   vector<vector<uint> > vtx_of_comp_u(n_comp); // vertexes of components (untargeted)
-  
+
+  if (n_comp > size) cerr << "n_comp: " << n_comp << " > n_vtx: " << size << endl;
   for(uint i=0; i< n_comp; i++) {
       uint idx = rand()%size;
-      while(vtx_comp[idx]!=-1) idx++;  // every component has at least one vtx 
+      while(vtx_comp[idx]!=-1) {
+          idx++;  // every component has at least one vtx          
+          if (idx == size) idx=0;
+      }    
       vtx_comp[idx] = i;
   }    
   for(uint i=0; i< size; i++) { // set remaining vtxes to components
@@ -211,20 +215,25 @@ void make_data(ostream &out, unsigned int problem_size) {
 
 int main(int argc, char* argv[]) {
     unsigned int problem_size = 0;
-    bool random_data=false;
+    uint random_seed=problem_size;
+    
     for(int i =1; i<argc;i++) {       
         if (argv[i] == string("-p") ) {
             i++;
-            stringstream(argv[i]) >> problem_size;
+            if (i < argc) 
+                stringstream(argv[i]) >> problem_size;
         } else if (argv[i] == string("-r")) {
-            random_data=true;
+            i++;
+            if (i < argc) {
+                istringstream ss(argv[i]);                    
+                ss >> random_seed;
+                if (ss.fail()) {
+                    random_seed=problem_size; i--;
+                }   
+            }                           
         }
     }
-    if (random_data) {
-        srand (time(NULL));
-    } else {
-        srand (problem_size);
-    }
+    srand (random_seed);
 
     if (problem_size == 0) {
       solve( cin, cout);
