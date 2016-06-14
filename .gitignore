@@ -64,3 +64,6 @@ target/
 
 /www/data/**
 !/www/data/.readme.md
+
+/www/jobs/**
+!/www/jobs/.readme.md
