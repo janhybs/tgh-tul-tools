@@ -14,63 +14,48 @@ from config import wait_timescale
 
 
 class JobResult(object):
-    OK = 0
-    RUN_OK = 0
+    class L(object):
+        def __init__(self, code, shortname, longname=None):
+            self.code = code
+            self.shortname = shortname
+            self.longname = longname or self.shortname
 
-    CORRECT_OUTPUT = 1
-    WRONG_OUTPUT = 3
-    TIMEOUT_CORRECT_OUTPUT = 5
-    TIMEOUT_WRONG_OUTPUT = 7
+        def __repr__(self):
+            return self.longname
 
-    COMPILE_ERROR = 10
-    RUN_ERROR = 20
-    TIMEOUT = 30
-    GLOBAL_TIMEOUT = 40
-    SKIPPED = 50
-    UNKNOWN_ERROR = 100
+        def __call__(self, *args, **kwargs):
+            return self.code
 
-    _dict1 = dict()
-    _dict2 = dict()
+        def __hash__(self):
+            return hash(self.code)
 
-    @staticmethod
-    def reverse1(code):
-        if not JobResult._dict1:
-            JobResult._dict1[JobResult.CORRECT_OUTPUT] = 'A'
-            JobResult._dict1[JobResult.WRONG_OUTPUT] = 'W'
-            JobResult._dict1[JobResult.TIMEOUT_CORRECT_OUTPUT] = 'E'
-            JobResult._dict1[JobResult.TIMEOUT_WRONG_OUTPUT] = 'W'
+        def __eq__(self, other):
+            return self.code == other.code
 
-            JobResult._dict1[JobResult.UNKNOWN_ERROR] = 'E'
-            JobResult._dict1[JobResult.COMPILE_ERROR] = 'E'
-            JobResult._dict1[JobResult.RUN_ERROR] = 'E'
-            JobResult._dict1[JobResult.TIMEOUT] = 'E'
-            JobResult._dict1[JobResult.GLOBAL_TIMEOUT] = 'E'
-            JobResult._dict1[JobResult.SKIPPED] = 'E'
+        def __int__(self):
+            return self.code
 
-            JobResult._dict1[JobResult.RUN_OK] = 'O'
-            JobResult._dict1[JobResult.OK] = 'O'
+        def __ge__(self, other):
+            return self.code >= other.code
 
-        return JobResult._dict1.get(code, 'E')
+        def __gt__(self, other):
+            return self.code > other.code
 
-    @staticmethod
-    def reverse2(code):
-        if not JobResult._dict2:
-            JobResult._dict2[JobResult.CORRECT_OUTPUT] = 'OK'
-            JobResult._dict2[JobResult.WRONG_OUTPUT] = 'ER'
-            JobResult._dict1[JobResult.TIMEOUT_CORRECT_OUTPUT] = 'TO'
-            JobResult._dict1[JobResult.TIMEOUT_WRONG_OUTPUT] = 'ER'
+    OK                      = L(0,  'OK', 'OK')
+    RUN_OK                  = L(0,  'OK', 'OK')
 
-            JobResult._dict2[JobResult.UNKNOWN_ERROR] = 'ER'
-            JobResult._dict2[JobResult.COMPILE_ERROR] = 'ER'
-            JobResult._dict2[JobResult.RUN_ERROR] = 'ER'
-            JobResult._dict1[JobResult.TIMEOUT] = 'ER'
-            JobResult._dict1[JobResult.GLOBAL_TIMEOUT] = 'ER'
-            JobResult._dict1[JobResult.SKIPPED] = 'ER'
+    CORRECT_OUTPUT          = L(1,  'A', 'ACC')
+    TIMEOUT_CORRECT_OUTPUT  = L(3,  'T', 'TOK')
 
-            JobResult._dict2[JobResult.RUN_OK] = 'OK'
-            JobResult._dict2[JobResult.OK] = 'OK'
+    WRONG_OUTPUT            = L(5,  'W', 'WRO')
+    TIMEOUT_WRONG_OUTPUT    = L(7,  'E', 'TER')
 
-        return JobResult._dict2.get(code, 'ER')
+    COMPILE_ERROR           = L(10, 'E', 'CER')
+    RUN_ERROR               = L(20, 'E', 'RER')
+    TIMEOUT                 = L(30, 'E', 'TIM')
+    GLOBAL_TIMEOUT          = L(40, 'E', 'TIM')
+    SKIPPED                 = L(50, 'E', 'SKI')
+    UNKNOWN_ERROR           = L(100,'E', 'ERR')
 
 
 class JobControl(object):

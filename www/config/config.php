@@ -22,10 +22,13 @@ define('MAX_WAIT_TIME', 75);
 class JobResult {
     const OK                        = 0;
     const RUN_OK                    = 0;
+    
     const CORRECT_OUTPUT            = 1;
-    const WRONG_OUTPUT              = 3;
-    const TIMEOUT_CORRECT_OUTPUT    = 5;
+    const TIMEOUT_CORRECT_OUTPUT    = 3;
+    
+    const WRONG_OUTPUT              = 5;
     const TIMEOUT_WRONG_OUTPUT      = 7;
+    
     const COMPILE_ERROR             = 10;
     const RUN_ERROR                 = 20;
     const TIMEOUT                   = 30;
