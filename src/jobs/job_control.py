@@ -41,21 +41,38 @@ class JobResult(object):
         def __gt__(self, other):
             return self.code > other.code
 
+    # ####################################
+    # t ... time limit for case_i
+    # d ... duration for case_i
+    # ####################################
+
+    # internal value
     OK                      = L(0,  'OK', 'OK')
+    # internal value
     RUN_OK                  = L(0,  'OK', 'OK')
 
-    CORRECT_OUTPUT          = L(1,  'A', 'ACC')
-    TIMEOUT_CORRECT_OUTPUT  = L(3,  'T', 'TOK')
+    # solution was correct and d <= t
+    CORRECT_OUTPUT          = L(1,  'A', 'ACCEPTED')
+    # solution was correct and d <= t * 10
+    TIMEOUT_CORRECT_OUTPUT  = L(3,  'T', 'TIMEOUT_ACC')
 
-    WRONG_OUTPUT            = L(5,  'W', 'WRO')
-    TIMEOUT_WRONG_OUTPUT    = L(7,  'E', 'TER')
+    # solution was incorrect and d <= t
+    WRONG_OUTPUT            = L(5,  'W', 'WRONG')
+    # solution was incorrect and d <= t * 10
+    TIMEOUT_WRONG_OUTPUT    = L(7,  'W', 'TIMEOUT_WRONG')
 
-    COMPILE_ERROR           = L(10, 'E', 'CER')
-    RUN_ERROR               = L(20, 'E', 'RER')
-    TIMEOUT                 = L(30, 'E', 'TIM')
-    GLOBAL_TIMEOUT          = L(40, 'E', 'TIM')
-    SKIPPED                 = L(50, 'E', 'SKI')
-    UNKNOWN_ERROR           = L(100,'E', 'ERR')
+    # compilation error
+    COMPILE_ERROR           = L(10, 'E', 'COMP_ERROR')
+    # runtime error
+    RUN_ERROR               = L(20, 'E', 'RUN_ERROR')
+    # local timeout for case_i, d > t * 10
+    TIMEOUT                 = L(30, 'E', 'LOCAL_TIMEOUT')
+    # global timeout, sum of all d > 60
+    GLOBAL_TIMEOUT          = L(40, 'E', 'GLOBAL_TIMEOUT')
+    # case was skipped due to global timeout
+    SKIPPED                 = L(50, 'E', 'SKIPPED')
+    # something went wrong, like missing input file and other things
+    UNKNOWN_ERROR           = L(100,'E', 'ERROR')
 
 
 class JobControl(object):
@@ -138,8 +155,6 @@ class StudentJob(object):
         inn_file = os.path.join(self.program_root, 'input', '{}.in'.format(case_id))
         out_file = os.path.join(self.r.root, 'output', '{}.out'.format(case_id))
         err_file = os.path.join(self.r.root, 'output', '{}.err'.format(case_id))
-
-
 
         if not os.path.exists(inn_file):
             Logger.instance().warning('    {} Input file does not exists {}'.format(case_id, inn_file))

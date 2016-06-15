@@ -193,23 +193,16 @@ class TGHProcessor(Daemon):
             # reference job
             if job.reference:
                 if problem_size:
-                    info = u'  [{case_code}] sada {case_id:<20s} -p {problem_size}{random}'.format(**locals())
+                    info = u'  [{case_code:^14s}] sada {case_id:<20s} -p {problem_size}{random}'.format(**locals())
                 else:
-                    info = u'  [{case_code}] sada {case_id:<20s}'.format(**locals())
+                    info = u'  [{case_code:^14s}] sada {case_id:<20s}'.format(**locals())
 
-                summary.append(u'{info:60s}{duration:10.3f}'.format(**locals()))
-                continue
+                summary.append(u'{info:70s}{duration:10.3f}'.format(**locals()))
 
             # standard student job
-            if not job.reference:
-                info = u'  [{case_code}] sada {case_id:<20s}'.format(**locals())
-                summary.append(u'{info:60s}{duration:10.3f}'.format(**locals()))
-
-                # add more info if case went wrong
-                if case_result > JobResult.TIMEOUT_CORRECT_OUTPUT:
-                    error = res.get('error', '').strip()
-                    if error:
-                        summary.append(u'{:7s}{error}'.format('', **locals()))
+            elif not job.reference:
+                info = u'  [{case_code:^14s}] sada {case_id:<20s}'.format(**locals())
+                summary.append(u'{info:70s}{duration:10.3f}'.format(**locals()))
 
                 # in case of wrong output print what went wrong
                 if case_result is JobResult.WRONG_OUTPUT:
@@ -218,7 +211,12 @@ class TGHProcessor(Daemon):
                     else:
                         method = u'CHYBNY_VYSTUP na zaklade vysledku referencniho skriptu'
 
-                    summary.append(u'{:7s}{method}'.format('', **locals()))
+                    summary.append(u'{:19s}{method}'.format('', **locals()))
+
+            # add more info if case went wrong
+            error = res.get('error', '').strip()
+            if error:
+                summary.append(u'{:19s}{error}'.format('', **locals()))
 
         summary.append(u'')
         summary.append(u'')
