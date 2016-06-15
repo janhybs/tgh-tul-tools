@@ -165,14 +165,20 @@ class TGHProcessor(Daemon):
         :rtype: jobs.job_control.JobResult.L
         """
         try:
+            # all results
             results = {x for x in plucklib.pluck(result, 'result')}
             Logger.instance().info('Statuses = {}'.format(results))
 
-            result -= {JobResult.GLOBAL_TIMEOUT, JobResult.SKIPPED}
+            # filtered
+            results -= {JobResult.GLOBAL_TIMEOUT, JobResult.SKIPPED}
             Logger.instance().info('Filtered = {}'.format(results))
+
+            # max result
             max_result = max(results)
             Logger.instance().info('max = {}'.format(max_result))
-        except:
+
+        except Exception as e:
+            Logger.instance().info('max_status exception = {}'.format(e))
             max_result = JobResult.UNKNOWN_ERROR
         return max_result
 
@@ -245,6 +251,11 @@ class MyEncoder(JSONEncoder):
     def default(self, o):
         return str(o)
 
+s = {JobResult.OK}
+s -= {JobResult.GLOBAL_TIMEOUT, JobResult.SKIPPED}
+print s
+
+exit(0)
 
 if __name__ == "__main__":
     args = sys.argv[1:]
