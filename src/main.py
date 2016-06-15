@@ -141,7 +141,8 @@ class TGHProcessor(Daemon):
             main_result['summary'] = summary
             main_result['attempt_dir'] = dest_dir
             main_result['result'] = result
-            main_result['max_result'] = max_status
+            main_result['max_result'] = max_status()
+            main_result['max_result_str'] = max_status
 
             # save results
             result_json = json.dumps(main_result, indent=4, cls=MyEncoder)
