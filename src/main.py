@@ -142,7 +142,7 @@ class TGHProcessor(Daemon):
             main_result['attempt_dir'] = dest_dir
             main_result['result'] = result
             main_result['max_result'] = max_status()
-            main_result['max_result_str'] = max_status
+            main_result['max_result_str'] = max_status.longname
 
             # save results
             result_json = json.dumps(main_result, indent=4, cls=MyEncoder)
@@ -250,7 +250,10 @@ def usage(msg=''):
 
 class MyEncoder(JSONEncoder):
     def default(self, o):
-        return str(o)
+        try:
+            return o()
+        except:
+            return str(o)
 
 if __name__ == "__main__":
     args = sys.argv[1:]
