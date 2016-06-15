@@ -102,6 +102,7 @@ class TGHProcessor(Daemon):
 
         # get max status from all cases (excluding global timeout and skipped)
         max_status = self.get_max_result(result)
+        Logger.instance().info('Max status = {}({})'.format(repr(max_status), max_status()))
 
         # prepare user directory
         attempts = os.listdir(user_dir)

@@ -47,9 +47,9 @@ class JobResult(object):
     # ####################################
 
     # internal value
-    OK                      = L(0,  'OK', 'OK')
+    OK                      = L(0,  'O', 'OK')
     # internal value
-    RUN_OK                  = L(0,  'OK', 'OK')
+    RUN_OK                  = L(0,  'O', 'OK')
 
     # solution was correct and d <= t
     CORRECT_OUTPUT          = L(1,  'A', 'ACCEPTED')
