@@ -1,11 +1,13 @@
 var pbar = document.getElementById('pbar');
-var total = 75;
-var current = 0;
+var duration = 75;
+var current = Date.now();
+var future = Date.now() + duration*1000;
 var tid = setInterval(function() {
     // # update pbar width
-    current++;
-    pbar.style.width = ((100/total) * current)+"%";
+    var current = Date.now();
+    prc = ((duration * 1000 - (future - current)) / duration) / 10;
+    pbar.style.width = prc+"%";
     
     // # stop pbar
-    if (current == total) clearInterval(tid);
-}, 1000);
+    if ((future - current) <= 0) clearInterval(tid);
+}, 500);
