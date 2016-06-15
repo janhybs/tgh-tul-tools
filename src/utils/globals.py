@@ -163,3 +163,39 @@ class GlobalTimeout(object):
     @classmethod
     def invalid(cls):
         return cls._time_left < cls._out_of_time
+
+
+class SmartFile(object):
+    def __init__(self, show_content=False):
+        self.filename = None
+        self.show_content = False
+
+    def __call__(self, filename):
+        self.filename = filename
+
+    def value(self, as_json=False):
+        if self.filename:
+            if as_json:
+                with open(self.filename, 'r') as fp:
+                    return json.load(fp, encoding="utf-8")
+            with open(self.filename, 'r') as fp:
+                return fp.read()
+        return None
+
+    def to_json(self):
+        if not self.filename:
+            return dict(
+                path=self.filename,
+                size=0
+            )
+
+        if self.show_content:
+            return dict(
+                path=self.filename,
+                content=self.value(),
+                size=os.path.getsize(),
+            )
+        return dict(
+                path=self.filename,
+                size=os.path.getsize(),
+            )

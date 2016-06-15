@@ -5,7 +5,7 @@
 import os, sys, time, logging, json
 
 from simplejson import JSONEncoder
-from jobs.job_control import JobControl, JobResult
+from jobs.job_control import JobControl, JobCode
 from jobs.job_request import JobRequest
 from utils import plucklib
 
@@ -86,7 +86,7 @@ class TGHProcessor(Daemon):
                         result = e.info
                     except Exception as e:
                         result = dict(
-                            result=JobResult.UNKNOWN_ERROR,
+                            result=JobCode.UNKNOWN_ERROR,
                             error=str(e),
                         )
 
@@ -163,7 +163,7 @@ class TGHProcessor(Daemon):
         """
         Extract result from all cases - GLOBAL_TIMEOUT and SKIPPED and
         return max value (or UNKNOWN_ERROR if nothings left)
-        :rtype: jobs.job_control.JobResult.L
+        :rtype: jobs.job_control.JobCode.L
         """
         try:
             # all results
@@ -171,7 +171,7 @@ class TGHProcessor(Daemon):
             Logger.instance().info('Statuses = {}'.format(results))
 
             # filtered
-            results -= {JobResult.GLOBAL_TIMEOUT, JobResult.SKIPPED}
+            results -= {JobCode.GLOBAL_TIMEOUT, JobCode.SKIPPED}
             Logger.instance().info('Filtered = {}'.format(results))
 
             # max result
@@ -180,7 +180,7 @@ class TGHProcessor(Daemon):
 
         except Exception as e:
             Logger.instance().info('max_status exception = {}'.format(e))
-            max_result = JobResult.UNKNOWN_ERROR
+            max_result = JobCode.UNKNOWN_ERROR
         return max_result
 
     @staticmethod
@@ -217,7 +217,7 @@ class TGHProcessor(Daemon):
                 summary.append(u'{info:70s}{duration:10.3f}'.format(**locals()))
 
                 # in case of wrong output print what went wrong
-                if case_result is JobResult.WRONG_OUTPUT:
+                if case_result is JobCode.WRONG_OUTPUT:
                     if res.get('method') == 'file-comparison':
                         method = u'CHYBNY_VYSTUP na zaklade porovnani souboru'
                     else:
@@ -234,7 +234,7 @@ class TGHProcessor(Daemon):
         summary.append(u'')
 
         # final message
-        if max(plucklib.pluck(result, 'result')) <= JobResult.TIMEOUT_CORRECT_OUTPUT:
+        if max(plucklib.pluck(result, 'result')) <= JobCode.TIMEOUT_CORRECT_OUTPUT:
             summary.append(u'Odevzdane reseni je SPRAVNE')
         else:
             summary.append(u'Odevzdane reseni je CHYBNE')
@@ -251,7 +251,7 @@ def usage(msg=''):
 class MyEncoder(JSONEncoder):
     def default(self, o):
         try:
-            return o()
+            return o.to_json()
         except:
             return str(o)
 

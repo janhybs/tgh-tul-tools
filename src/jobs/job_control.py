@@ -8,12 +8,57 @@ import time
 import datetime
 
 from jobs.job_processing import DynamicLanguage, Command, LangMap
-from utils.globals import ProcessException, remove_empty, compare, tryjson, Config, ensure_path, GlobalTimeout
+from utils.globals import ProcessException, remove_empty, compare, tryjson, Config, ensure_path, GlobalTimeout, \
+    SmartFile
 from utils.logger import Logger
 from config import wait_timescale
 
 
 class JobResult(object):
+    """
+    :type problem_input    : jobs.job_request.ProblemInput
+    :type problem          : jobs.job_request.Problem
+    """
+    def __init__(self, case_id, problem, problem_input):
+        self.case_id = case_id
+        self.problem = problem
+        self.problem_input = problem_input
+
+        self.inn_file = SmartFile(show_content=False)
+        self.out_file = SmartFile(show_content=False)
+        self.err_file = SmartFile(show_content=True)
+
+        self.error = None
+        self.command = None
+        self.returncode = None
+
+        self.result = JobCode.UNKNOWN_ERROR
+        self.duration = 0
+
+    def to_json(self):
+        return dict(
+            info=dict(
+                case_id=self.case_id,
+                problem_size=self.problem_input.problem_size,
+                problem_random=self.problem_input.random,
+                problem_cases=self.problem_input.cases,
+                problem_multiple_solution=self.problem.multiple_solution,
+            ),
+            files=dict(
+                input=self.inn_file,
+                output=self.out_file,
+                error=self.err_file,
+            ),
+            result=dict(
+                code=self.result.code,
+                name=self.result.longname,
+                duration=self.duration,
+                returncode=self.returncode
+            )
+        )
+
+
+class JobCode(object):
     class L(object):
         def __init__(self, code, shortname, longname=None):
             self.code = code
@@ -40,6 +85,9 @@ class JobResult(object):
 
         def __gt__(self, other):
             return self.code > other.code
+
+        def to_json(self):
+            return self.code
 
     # ####################################
     # t ... time limit for case_i
@@ -146,7 +194,7 @@ class StudentJob(object):
 
         if GlobalTimeout.invalid():
             result_base.update(
-                result=JobResult.SKIPPED,
+                result=JobCode.SKIPPED,
                 duration=0.0
             )
             return result_base
@@ -158,7 +206,7 @@ class StudentJob(object):
 
         if not os.path.exists(inn_file):
             Logger.instance().warning('    {} Input file does not exists {}'.format(case_id, inn_file))
-            result_base['result'] = JobResult.UNKNOWN_ERROR
+            result_base['result'] = JobCode.UNKNOWN_ERROR
             result_base['duration'] = 0
             result_base['error'] = '{} Input file does not exists {}'.format(case_id, inn_file)
             return result_base
@@ -172,24 +220,24 @@ class StudentJob(object):
 
         # timeout
         if run_result.info['global_terminated']:
-            result_base['result'] = JobResult.GLOBAL_TIMEOUT
+            result_base['result'] = JobCode.GLOBAL_TIMEOUT
             Logger.instance().info('    {} Command was terminated (global timeout)!'.format(case_id))
             return result_base
 
         # timeout
         if run_result.info['terminated']:
-            result_base['result'] = JobResult.TIMEOUT
+            result_base['result'] = JobCode.TIMEOUT
             Logger.instance().info('    {} Command was terminated!'.format(case_id))
             return result_base
 
         # run error
         if run_result.exit != 0:
-            result_base['result'] = JobResult.RUN_ERROR
+            result_base['result'] = JobCode.RUN_ERROR
             Logger.instance().info('    {} error while execution'.format(case_id))
             return result_base
 
         # run ok
-        result_base['result'] = JobResult.RUN_OK
+        result_base['result'] = JobCode.RUN_OK
         remove_empty(err_file)
 
         # run ref script to test solution's output
@@ -204,11 +252,11 @@ class StudentJob(object):
 
         # mark timeout results
         if run_result.duration/1000 > input_spec.time:
-            if result_base['result'] == JobResult.CORRECT_OUTPUT:
-                result_base['result'] = JobResult.TIMEOUT_CORRECT_OUTPUT
+            if result_base['result'] == JobCode.CORRECT_OUTPUT:
+                result_base['result'] = JobCode.TIMEOUT_CORRECT_OUTPUT
 
-            elif result_base['result'] == JobResult.WRONG_OUTPUT:
-                result_base['result'] = JobResult.TIMEOUT_WRONG_OUTPUT
+            elif result_base['result'] == JobCode.WRONG_OUTPUT:
+                result_base['result'] = JobCode.TIMEOUT_WRONG_OUTPUT
 
         return result_base
 
@@ -230,17 +278,17 @@ class StudentJob(object):
         try:
             compare_result = compare(a, b)
             if compare_result:
-                info['result'] = JobResult.CORRECT_OUTPUT
+                info['result'] = JobCode.CORRECT_OUTPUT
                 info['method'] = 'file-comparison'
                 Logger.instance().debug('    {} correct output[F]'.format(case_id))
                 return info
             else:
-                info['result'] = JobResult.WRONG_OUTPUT
+                info['result'] = JobCode.WRONG_OUTPUT
                 info['method'] = 'file-comparison'
                 Logger.instance().debug('    {} wrong output[F]'.format(case_id))
                 return info
         except Exception as e:
-                info['result'] = JobResult.UNKNOWN_ERROR
+                info['result'] = JobCode.UNKNOWN_ERROR
                 info['method'] = 'file-comparison'
                 info['error'] = str(e)
                 info['details'] = 'Error during file comparison'
@@ -260,7 +308,7 @@ class StudentJob(object):
 
         if compile_result.exit != 0:
             info = compile_result.info
-            info['result'] = JobResult.COMPILE_ERROR
+            info['result'] = JobCode.COMPILE_ERROR
             raise ProcessException(info)
 
         # clean up
@@ -323,13 +371,13 @@ class ReferenceJob(object):
 
             # run error
             if run_result.exit != 0:
-                result_base['result'] = JobResult.RUN_ERROR
+                result_base['result'] = JobCode.RUN_ERROR
                 result.append(result_base)
                 Logger.instance().debug('    {} error while generating input file'.format(case_id))
                 continue
 
             # run ok
-            result_base['result'] = JobResult.RUN_OK
+            result_base['result'] = JobCode.RUN_OK
             result.append(result_base)
             remove_empty(err_file)
             Logger.instance().debug('    {} input file generated'.format(case_id))
@@ -361,12 +409,12 @@ class ReferenceJob(object):
 
         # run error
         if run_result.exit != 0:
-            result_base['result'] = JobResult.RUN_ERROR
+            result_base['result'] = JobCode.RUN_ERROR
             Logger.instance().debug('    {} error while generating output file'.format(case_id))
             return result_base
 
         # run ok
-        result_base['result'] = JobResult.RUN_OK
+        result_base['result'] = JobCode.RUN_OK
         remove_empty(err_file)
         Logger.instance().debug('    {} output file created'.format(case_id))
 
@@ -389,7 +437,7 @@ class ReferenceJob(object):
 
         if compile_result.exit != 0:
             info = compile_result.info
-            info['result'] = JobResult.COMPILE_ERROR
+            info['result'] = JobCode.COMPILE_ERROR
             raise ProcessException(info)
 
         # clean up
@@ -413,7 +461,7 @@ class ReferenceJob(object):
         # run error
         if run_result.exit != 0:
             info = run_result.info
-            info['result'] = JobResult.WRONG_OUTPUT
+            info['result'] = JobCode.WRONG_OUTPUT
             info['method'] = 'ref-script'
             info['comparison'] = tryjson(out_file)
             Logger.instance().debug('    {} wrong output[S]'.format(case_id))
@@ -422,7 +470,7 @@ class ReferenceJob(object):
             return info
         else:
             info = run_result.info
-            info['result'] = JobResult.CORRECT_OUTPUT
+            info['result'] = JobCode.CORRECT_OUTPUT
             info['method'] = 'ref-script'
             info['comparison'] = tryjson(out_file)
             Logger.instance().debug('    {} correct output[S]'.format(case_id))

@@ -168,7 +168,7 @@ if (SERVICE_DEBUG)
                     $result = waitForResult($jobInfo);
                 } catch (Exception $e) {
                     $result = (object)array(
-                        'max_result' => JobResult::UNKNOWN_ERROR,
+                        'max_result' => JobCode::UNKNOWN_ERROR,
                         'error'      => $e->getMessage()
                     );
                 }
