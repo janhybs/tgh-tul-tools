@@ -166,8 +166,12 @@ class TGHProcessor(Daemon):
         """
         try:
             results = {x for x in plucklib.pluck(result, 'result')}
+            Logger.instance().info('Statuses = {}'.format(results))
+
             result -= {JobResult.GLOBAL_TIMEOUT, JobResult.SKIPPED}
+            Logger.instance().info('Filtered = {}'.format(results))
             max_result = max(results)
+            Logger.instance().info('max = {}'.format(max_result))
         except:
             max_result = JobResult.UNKNOWN_ERROR
         return max_result
