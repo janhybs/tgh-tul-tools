@@ -97,6 +97,9 @@ class TGHProcessor(Daemon):
             time.sleep(runner_sleep)
 
     def save_result(self, job, result):
+        """
+        :type result: list[jobs.job_control.CaseResult] or jobs.job_control.CaseResult
+        """
         user_dir = os.path.join(Config.data, job.nameuser, job.problem.id)
         ensure_path(user_dir, is_file=False)
 
@@ -109,6 +112,7 @@ class TGHProcessor(Daemon):
         attempt_no = [int(x.split("-")[0]) for x in attempts] or [0]
         next_attempt = max(attempt_no) + 1
         attempt_dir = '{:02d}-{}-{}'.format(next_attempt, job.username, max_status.shortname)
+        Logger.instance().info("Output dir will be named as {}".format(attempt_dir))
 
         # ensure it exists
         dest_dir = os.path.join(user_dir, attempt_dir)
@@ -120,9 +124,9 @@ class TGHProcessor(Daemon):
 
         if type(result) is not list:
             Logger.instance().info('Error during execution! ')
-            Logger.instance().info(result.get('error', 'Unknown error'))
+            Logger.instance().info(result.err_file.value())
 
-            result_json = json.dumps(result, indent=4, cls=MyEncoder)
+            result_json = json.dumps(result.get_error(), indent=4, cls=MyEncoder, sort_keys=True)
             with open(job.result_file, 'w') as fp:
                 fp.write(result_json)
 
@@ -132,6 +136,9 @@ class TGHProcessor(Daemon):
 
             return None, None
         else:
+            # confirm results
+            [r.confirm(job, dest_dir) for r in result]
+
             summary = self.get_result_summary(job, result, next_attempt).encode('utf8')
             with open(os.path.join(dest_dir, 'result.txt'), 'wb') as fp:
                 fp.write(summary)
@@ -145,7 +152,7 @@ class TGHProcessor(Daemon):
             main_result['max_result_str'] = max_status.longname
 
             # save results
-            result_json = json.dumps(main_result, indent=4, cls=MyEncoder)
+            result_json = json.dumps(main_result, indent=4, cls=MyEncoder, sort_keys=True)
             with open(job.result_file, 'w') as fp:
                 fp.write(result_json)
 
@@ -184,7 +191,12 @@ class TGHProcessor(Daemon):
         return max_result
 
     @staticmethod
-    def get_result_summary(job, result, attempt_no):
+    def get_result_summary(job, results, attempt_no):
+        """
+        :param attempt_no: int
+        :type results: list[jobs.job_control.CaseResult]
+        :type job: jobs.job_request.JobRequest
+        """
         summary = list()
         summary.append(u'{:15s}{job.problem.name} ({job.problem.id})'.format('uloha', job=job))
         summary.append(u'{:15s}{job.lang.name} ({job.lang.version})'.format('jazyk', job=job))
@@ -193,48 +205,36 @@ class TGHProcessor(Daemon):
         summary.append(u'{:15s}{}.'.format('pokus', attempt_no))
         summary.append('')
 
-        for res in result:
-            case_result = res['result']
-            case_code = case_result.longname
-            case_id = res['info'].get('id', 'unknown job')
-            duration = res['duration']
-            problem_size = res['info'].get('problem_size', None)
-            random = res['info'].get('random', False)
-            random = ' -r' if random else ''
+        for r in results:
 
             # reference job
             if job.reference:
-                if problem_size:
-                    info = u'  [{case_code:^14s}] sada {case_id:<20s} -p {problem_size}{random}'.format(**locals())
-                else:
-                    info = u'  [{case_code:^14s}] sada {case_id:<20s}'.format(**locals())
-
-                summary.append(u'{info:70s}{duration:10.3f}'.format(**locals()))
+                info = u'  [{r.result.longname:^14s}] sada {r.case_id:<20s} {r.problem_size_str}{r.random_str}'.format(**locals())
+                summary.append(u'{info:70s}{r.duration:10.3f} ms'.format(**locals()))
 
             # standard student job
             elif not job.reference:
-                info = u'  [{case_code:^14s}] sada {case_id:<20s}'.format(**locals())
-                summary.append(u'{info:70s}{duration:10.3f}'.format(**locals()))
+                info = u'  [{r.result.longname:^14s}] sada {r.case_id:<20s}'.format(**locals())
+                summary.append(u'{info:70s}{r.duration:10.3f} ms'.format(**locals()))
 
                 # in case of wrong output print what went wrong
-                if case_result is JobCode.WRONG_OUTPUT:
-                    if res.get('method') == 'file-comparison':
-                        method = u'CHYBNY_VYSTUP na zaklade porovnani souboru'
-                    else:
+                if r.result is JobCode.WRONG_OUTPUT:
+                    if r.problem.multiple_solution:
                         method = u'CHYBNY_VYSTUP na zaklade vysledku referencniho skriptu'
+                    else:
+                        method = u'CHYBNY_VYSTUP na zaklade porovnani souboru'
 
                     summary.append(u'{:19s}{method}'.format('', **locals()))
 
             # add more info if case went wrong
-            error = res.get('error', '').strip()
-            if error:
-                summary.append(u'{:19s}{error}'.format('', **locals()))
+            if r.error:
+                summary.append(u'{:19s}{r.error}'.format('', **locals()))
 
         summary.append(u'')
         summary.append(u'')
 
         # final message
-        if max(plucklib.pluck(result, 'result')) <= JobCode.TIMEOUT_CORRECT_OUTPUT:
+        if max(plucklib.pluck(results, 'result')) <= JobCode.TIMEOUT_CORRECT_OUTPUT:
             summary.append(u'Odevzdane reseni je SPRAVNE')
         else:
             summary.append(u'Odevzdane reseni je CHYBNE')

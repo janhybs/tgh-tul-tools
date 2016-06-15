@@ -190,16 +190,16 @@ if (SERVICE_DEBUG)
                    </tr>
                    <?php foreach ($jj->results as $jjj):?>
                        <tr class="<?php echo $jjj->class_str;?>">
-                         <td><?php echo $jjj->id; ?></td>
+                         <td><?php echo $jjj->case_id; ?></td>
                          <td><?php echo $jjj->result_str; ?></td>
                          <td><?php echo $jjj->duration_str; ?></td>
                          <td>
                              <div class="btn-group" role="group" aria-label="...">
                                  <?php 
-                                    echo get_download_button($jjj->input_download, 'I', 'Vstupní soubor', FALSE, 'btn-default');
-                                    echo get_download_button($jjj->output_download, 'O', 'Výstupní soubor', FALSE, 'btn-'.$jjj->class_str);
-                                    echo get_download_button($jjj->reference_download, 'R', 'Referenční výstupní soubor', TRUE, 'btn-default');
-                                    echo get_download_button($jjj->error_download, 'E', 'Chybový výstup', TRUE, 'btn-danger');
+                                    echo get_download_button($jjj->input_href, 'I', 'Vstupní soubor', FALSE, 'btn-default');
+                                    echo get_download_button($jjj->output_href, 'O', 'Výstupní soubor', FALSE, 'btn-'.$jjj->class_str);
+                                    echo get_download_button($jjj->reference_href, 'R', 'Referenční výstupní soubor', TRUE, 'btn-default');
+                                    echo get_download_button($jjj->error_href, 'E', 'Chybový výstup', TRUE, 'btn-danger');
                                   ?>
                              </div>
                          </td>

@@ -8,13 +8,14 @@ import time
 import datetime
 
 from jobs.job_processing import DynamicLanguage, Command, LangMap
-from utils.globals import ProcessException, remove_empty, compare, tryjson, Config, ensure_path, GlobalTimeout, \
-    SmartFile
+from jobs.job_request import ProblemInput
+from utils.globals import remove_empty, compare, tryjson, Config, ensure_path, GlobalTimeout, \
+    SmartFile, ProcessException
 from utils.logger import Logger
 from config import wait_timescale
 
 
-class JobResult(object):
+class CaseResult(object):
     """
     :type problem_input    : jobs.job_request.ProblemInput
     :type problem          : jobs.job_request.Problem
@@ -27,13 +28,39 @@ class JobResult(object):
         self.inn_file = SmartFile(show_content=False)
         self.out_file = SmartFile(show_content=False)
         self.err_file = SmartFile(show_content=True)
+        self.ref_file = SmartFile(show_content=False)
 
         self.error = None
         self.command = None
         self.returncode = None
+        self.details = None
 
         self.result = JobCode.UNKNOWN_ERROR
-        self.duration = 0
+        self.duration = 0.0
+
+        self.random_str = None
+        self.problem_size_str = None
+
+    def confirm(self, job, attempt_dir):
+        self.error = self.err_file.value()
+        self.random_str = ' -r' if self.problem_input.random else ''
+        self.problem_size_str = ' -p {}'.format(self.problem_input.problem_size) if self.problem_input.problem_size else ''
+
+        [f.create_server_path(job, attempt_dir) for f in [self.inn_file, self.out_file, self.err_file, self.ref_file]]
+
+    def get_error(self):
+        return dict(
+            error=self.err_file.value(),
+            returncode=self.returncode,
+            max_result=self.result.code,
+            result=dict(
+                code=self.result.code,
+                name=self.result.longname,
+                duration=self.duration,
+                returncode=self.returncode,
+                details=self.details
+            )
+        )
 
     def to_json(self):
         return dict(
@@ -41,19 +68,22 @@ class JobResult(object):
                 case_id=self.case_id,
                 problem_size=self.problem_input.problem_size,
                 problem_random=self.problem_input.random,
-                problem_cases=self.problem_input.cases,
-                problem_multiple_solution=self.problem.multiple_solution,
+                command=self.command,
+                # problem_cases=self.problem_input.cases,
+                # problem_multiple_solution=self.problem.multiple_solution,
             ),
             files=dict(
                 input=self.inn_file,
                 output=self.out_file,
                 error=self.err_file,
+                reference=self.ref_file,
             ),
             result=dict(
                 code=self.result.code,
                 name=self.result.longname,
                 duration=self.duration,
-                returncode=self.returncode
+                returncode=self.returncode,
+                details=self.details
             )
         )
 
@@ -161,6 +191,9 @@ class JobControl(object):
 
 
 class StudentJob(object):
+    """
+    :type module             : jobs.job_processing.LanguageProcess
+    """
     def __init__(self, request):
         """
         :type request: jobs.job_request.JobRequest
@@ -171,100 +204,105 @@ class StudentJob(object):
         self.program_root = os.path.join(Config.problems, self.r.problem.id)
 
     def process(self):
-        self.prepare_solution()
+        prepared = self.prepare_solution()
+        if prepared is not True:
+            raise ProcessException(prepared)
+
         results = list()
         for input_spec in self.r.problem.input:
             Logger.instance().debug('  {case_id}: {input_spec}'.format(case_id=input_spec.id, input_spec=input_spec))
             if input_spec.dynamic:
-                results.extend(
-                    self._dynamic(input_spec)
-                )
+                results.extend(self._dynamic(input_spec))
             else:
-                results.append(
-                    self._static(input_spec, input_spec.id)
-                )
+                results.append(self._static(input_spec, input_spec.id))
         return results
 
     def _static(self, input_spec, case_id):
         """
         :type input_spec: jobs.job_request.ProblemInput
         """
-        result_base = dict(info=input_spec.dict().copy())
-        result_base['info']['id'] = case_id
+        case_result = CaseResult(case_id, self.r.problem, input_spec)
 
         if GlobalTimeout.invalid():
-            result_base.update(
-                result=JobCode.SKIPPED,
-                duration=0.0
-            )
-            return result_base
+            case_result.result = JobCode.SKIPPED
+            return case_result
 
+        # prepare paths
         ref_out_file = os.path.join(self.program_root, 'output', '{}.out'.format(case_id))
         inn_file = os.path.join(self.program_root, 'input', '{}.in'.format(case_id))
         out_file = os.path.join(self.r.root, 'output', '{}.out'.format(case_id))
         err_file = os.path.join(self.r.root, 'output', '{}.err'.format(case_id))
 
+        # save files
+        case_result.inn_file(inn_file)
+        case_result.out_file(out_file)
+        case_result.err_file(err_file)
+        case_result.ref_file(ref_out_file)
+
         if not os.path.exists(inn_file):
             Logger.instance().warning('    {} Input file does not exists {}'.format(case_id, inn_file))
-            result_base['result'] = JobCode.UNKNOWN_ERROR
-            result_base['duration'] = 0
-            result_base['error'] = '{} Input file does not exists {}'.format(case_id, inn_file)
-            return result_base
+            case_result.result = JobCode.UNKNOWN_ERROR
+            case_result.error = '{} Input file does not exists {}'.format(case_id, inn_file)
+            return case_result
 
+        # run command
         run_args = self.module.run()
         run_command = Command(run_args, inn_file, out_file, err_file)
         run_result = run_command.run(input_spec.time * wait_timescale)
 
-        result_base.update(run_result.info)
-        result_base['command'] = run_args[-1] if len(run_args) > 0 else '<no command>'
+        # grab result
+        case_result.duration = run_result.duration
+        case_result.returncode = run_result.returncode
+        case_result.command = run_args[-1] if len(run_args) > 0 else '<no command>'
 
         # timeout
-        if run_result.info['global_terminated']:
-            result_base['result'] = JobCode.GLOBAL_TIMEOUT
+        if run_result.global_terminated:
+            case_result.result = JobCode.GLOBAL_TIMEOUT
             Logger.instance().info('    {} Command was terminated (global timeout)!'.format(case_id))
-            return result_base
+            return case_result
 
         # timeout
-        if run_result.info['terminated']:
-            result_base['result'] = JobCode.TIMEOUT
+        if run_result.terminated:
+            case_result.result = JobCode.TIMEOUT
             Logger.instance().info('    {} Command was terminated!'.format(case_id))
-            return result_base
+            return case_result
 
         # run error
-        if run_result.exit != 0:
-            result_base['result'] = JobCode.RUN_ERROR
+        if run_result.returncode != 0:
+            case_result.result = JobCode.RUN_ERROR
             Logger.instance().info('    {} error while execution'.format(case_id))
-            return result_base
+            return case_result
 
         # run ok
-        result_base['result'] = JobCode.RUN_OK
+        case_result.result = JobCode.RUN_OK
         remove_empty(err_file)
 
         # run ref script to test solution's output
         if not self.r.problem.multiple_solution:
-            compare_result = self.compare(result_base, case_id, ref_out_file, out_file)
-            result_base.update(compare_result)
+            compare_result = self.compare(case_id, ref_out_file, out_file)
+            case_result.result = compare_result.get('result')
+            case_result.details = compare_result.get('details', None)
+            case_result.error = compare_result.get('error', None)
         else:
-            comp_result = self.reference.test_solution(case_id)
-            result_base['result'] = comp_result['result']
-            result_base['comparison'] = comp_result['comparison']
-            result_base['method'] = comp_result['method']
+            compare_result = self.reference.test_solution(case_id)
+            case_result.result = compare_result.get('result')
+            case_result.details = compare_result.get('comparison', None)
+            case_result.error = compare_result.get('error', None)
 
         # mark timeout results
         if run_result.duration/1000 > input_spec.time:
-            if result_base['result'] == JobCode.CORRECT_OUTPUT:
-                result_base['result'] = JobCode.TIMEOUT_CORRECT_OUTPUT
+            if case_result.result is JobCode.CORRECT_OUTPUT:
+                case_result.result = JobCode.TIMEOUT_CORRECT_OUTPUT
 
-            elif result_base['result'] == JobCode.WRONG_OUTPUT:
-                result_base['result'] = JobCode.TIMEOUT_WRONG_OUTPUT
+            elif case_result.result == JobCode.WRONG_OUTPUT:
+                case_result.result = JobCode.TIMEOUT_WRONG_OUTPUT
 
-        return result_base
+        return case_result
 
     def _dynamic(self, input_spec):
         """
         :type input_spec: jobs.job_request.ProblemInput
         """
-        cases = input_spec.cases
         result = list()
 
         for c in input_spec.input_cases or [1]:
@@ -274,29 +312,27 @@ class StudentJob(object):
         return result
 
     @staticmethod
-    def compare(info, case_id, a, b):
+    def compare(case_id, a, b):
+        info = dict()
         try:
             compare_result = compare(a, b)
             if compare_result:
                 info['result'] = JobCode.CORRECT_OUTPUT
-                info['method'] = 'file-comparison'
                 Logger.instance().debug('    {} correct output[F]'.format(case_id))
                 return info
             else:
                 info['result'] = JobCode.WRONG_OUTPUT
-                info['method'] = 'file-comparison'
                 Logger.instance().debug('    {} wrong output[F]'.format(case_id))
                 return info
         except Exception as e:
                 info['result'] = JobCode.UNKNOWN_ERROR
-                info['method'] = 'file-comparison'
                 info['error'] = str(e)
                 info['details'] = 'Error during file comparison'
                 return info
 
     def prepare_solution(self):
         if self.module is not None:
-            return self.module
+            return True
 
         compile_out = os.path.join(self.r.root, 'compile.out')
         compile_err = os.path.join(self.r.root, 'compile.err')
@@ -306,16 +342,20 @@ class StudentJob(object):
         compile_command = Command(self.module.compile(), None, compile_out, compile_err)
         compile_result = compile_command.run()
 
-        if compile_result.exit != 0:
-            info = compile_result.info
-            info['result'] = JobCode.COMPILE_ERROR
-            raise ProcessException(info)
+        if compile_result.returncode != 0:
+            case_result = CaseResult('compile-phase', self.r.problem, ProblemInput())
+            case_result.result = JobCode.COMPILE_ERROR
+            case_result.returncode = compile_result.returncode
+            case_result.inn_file(None)
+            case_result.out_file(compile_out)
+            case_result.err_file(compile_err)
+            return case_result
 
         # clean up
         remove_empty(compile_out)
         remove_empty(compile_err)
 
-        return self.module
+        return True
 
 
 class ReferenceJob(object):
@@ -331,18 +371,17 @@ class ReferenceJob(object):
         self.program_root = os.path.join(Config.problems, self.r.problem.id)
 
     def process(self):
-        self.prepare_reference()
+        prepared = self.prepare_reference()
+        if prepared is not True:
+            raise ProcessException(prepared)
+
         results = list()
         for input_spec in self.r.problem.input:
             Logger.instance().debug('  {case_id}: {input_spec}'.format(case_id=input_spec.id, input_spec=input_spec))
             if input_spec.dynamic:
-                results.extend(
-                    self._dynamic(input_spec)
-                )
+                results.extend(self._dynamic(input_spec))
             else:
-                results.append(
-                    self._static(input_spec, input_spec.id)
-                )
+                results.append(self._static(input_spec, input_spec.id))
         return results
 
     def _dynamic(self, input_spec):
@@ -354,31 +393,37 @@ class ReferenceJob(object):
 
         for c in range(1, cases + 1):
             case_id = '{}.{}'.format(input_spec.id, c)
+            case_result = CaseResult(case_id, self.r.problem, input_spec)
+
             inn_file = None
             out_file = os.path.join(self.program_root, 'input', '{}.in'.format(case_id))
             err_file = os.path.join(self.program_root, 'input', '{}.err'.format(case_id))
 
+            # save files
+            case_result.inn_file(inn_file)
+            case_result.out_file(out_file)
+            case_result.err_file(err_file)
+
+            # run command
             run_args = self.module.run(prepare=input_spec.problem_size, rnd=input_spec.random)
             run_command = Command(run_args, inn_file, out_file, err_file)
             run_result = run_command.run()
 
-            result_base = dict(
-                info=input_spec.dict().copy(),
-                command=run_args[-1] if len(run_args) > 0 else '<no command>'
-            )
-            result_base.update(run_result.info)
-            result_base['info']['id'] = case_id
+            # grab result
+            case_result.duration = run_result.duration
+            case_result.returncode = run_result.returncode
+            case_result.command = run_args[-1] if len(run_args) > 0 else '<no command>'
 
             # run error
-            if run_result.exit != 0:
-                result_base['result'] = JobCode.RUN_ERROR
-                result.append(result_base)
+            if run_result.returncode != 0:
+                case_result.result = JobCode.RUN_ERROR
+                result.append(case_result)
                 Logger.instance().debug('    {} error while generating input file'.format(case_id))
                 continue
 
             # run ok
-            result_base['result'] = JobCode.RUN_OK
-            result.append(result_base)
+            case_result.result = JobCode.RUN_OK
+            result.append(case_result)
             remove_empty(err_file)
             Logger.instance().debug('    {} input file generated'.format(case_id))
 
@@ -392,40 +437,47 @@ class ReferenceJob(object):
         """
         :type input_spec: jobs.job_request.ProblemInput
         """
+        case_result = CaseResult(case_id, self.r.problem, input_spec)
+
+        # prepare files
         inn_file = os.path.join(self.program_root, 'input', '{}.in'.format(case_id))
         out_file = os.path.join(self.program_root, 'output', '{}.out'.format(case_id))
         err_file = os.path.join(self.program_root, 'output', '{}.err'.format(case_id))
 
+        # save files
+        case_result.inn_file(inn_file)
+        case_result.out_file(out_file)
+        case_result.err_file(err_file)
+
+        # run command
         run_args = self.module.run()
         run_command = Command(run_args, inn_file, out_file, err_file)
         run_result = run_command.run()
 
-        result_base = dict(
-            info=input_spec.dict().copy(),
-            command=run_args[-1] if len(run_args) > 0 else '<no command>'
-        )
-        result_base.update(run_result.info)
-        result_base['info']['id'] = case_id
+        # grab result
+        case_result.duration = run_result.duration
+        case_result.returncode = run_result.returncode
+        case_result.command = run_args[-1] if len(run_args) > 0 else '<no command>'
 
         # run error
-        if run_result.exit != 0:
-            result_base['result'] = JobCode.RUN_ERROR
+        if run_result.returncode != 0:
+            case_result.result = JobCode.RUN_ERROR
             Logger.instance().debug('    {} error while generating output file'.format(case_id))
-            return result_base
+            return case_result
 
         # run ok
-        result_base['result'] = JobCode.RUN_OK
+        case_result.result = JobCode.RUN_OK
         remove_empty(err_file)
         Logger.instance().debug('    {} output file created'.format(case_id))
 
-        return result_base
+        return case_result
 
     def prepare_reference(self):
         """
-        :rtype : DynamicLanguage
+        :rtype : DynamicLanguage or CaseResult
         """
         if self.module is not None:
-            return self.module
+            return True
 
         compile_out = os.path.join(self.program_root, 'compile.out')
         compile_err = os.path.join(self.program_root, 'compile.err')
@@ -435,16 +487,19 @@ class ReferenceJob(object):
         compile_command = Command(self.module.compile(), None, compile_out, compile_err)
         compile_result = compile_command.run()
 
-        if compile_result.exit != 0:
-            info = compile_result.info
-            info['result'] = JobCode.COMPILE_ERROR
-            raise ProcessException(info)
+        if compile_result.returncode != 0:
+            case_result = CaseResult('compile-phase', self.r.problem, ProblemInput())
+            case_result.returncode = compile_result.returncode
+            case_result.inn_file(None)
+            case_result.out_file(compile_out)
+            case_result.err_file(compile_err)
+            return case_result
 
         # clean up
         remove_empty(compile_out)
         remove_empty(compile_err)
 
-        return self.module
+        return True
 
     def test_solution(self, case_id):
         self.prepare_reference()
@@ -459,19 +514,17 @@ class ReferenceJob(object):
         run_result = run_command.run()
 
         # run error
-        if run_result.exit != 0:
-            info = run_result.info
+        if run_result.returncode != 0:
+            info = dict()
             info['result'] = JobCode.WRONG_OUTPUT
-            info['method'] = 'ref-script'
             info['comparison'] = tryjson(out_file)
             Logger.instance().debug('    {} wrong output[S]'.format(case_id))
             remove_empty(out_file)
             remove_empty(err_file)
             return info
         else:
-            info = run_result.info
+            info = dict()
             info['result'] = JobCode.CORRECT_OUTPUT
-            info['method'] = 'ref-script'
             info['comparison'] = tryjson(out_file)
             Logger.instance().debug('    {} correct output[S]'.format(case_id))
             remove_empty(out_file)

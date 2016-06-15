@@ -68,6 +68,9 @@ class Problems(object):
 
 
 class ProcessException(Exception):
+    """
+    :type info : jobs.job_control.CaseResult
+    """
     def __init__(self, info):
         super(ProcessException, self).__init__()
         self.info = info
@@ -166,15 +169,30 @@ class GlobalTimeout(object):
 
 
 class SmartFile(object):
+    """
+    :type filename     : str
+    """
     def __init__(self, show_content=False):
         self.filename = None
         self.show_content = False
 
     def __call__(self, filename):
         self.filename = filename
+        self.servername = None
+
+    def create_server_path(self, job, attempt_dir):
+        if not self.exists():
+            return
+
+        # is filename in job root?
+        if self.filename.startswith(job.root):
+            self.servername = os.path.join(attempt_dir, os.path.relpath(self.filename, job.root))
+        # path is already in servername format (ref inn out)
+        else:
+            self.servername = self.filename
 
     def value(self, as_json=False):
-        if self.filename:
+        if self.exists():
             if as_json:
                 with open(self.filename, 'r') as fp:
                     return json.load(fp, encoding="utf-8")
@@ -183,9 +201,10 @@ class SmartFile(object):
         return None
 
     def to_json(self):
-        if not self.filename:
+        if not self.exists():
             return dict(
                 path=self.filename,
+                server=None,
                 size=0
             )
 
@@ -193,9 +212,16 @@ class SmartFile(object):
             return dict(
                 path=self.filename,
                 content=self.value(),
-                size=os.path.getsize(),
+                size=os.path.getsize(self.filename),
+                server=self.servername,
             )
         return dict(
                 path=self.filename,
-                size=os.path.getsize(),
+                size=os.path.getsize(self.filename),
+                server=self.servername,
             )
+
+    def __nonzero__(self):
+        return bool(self.filename) and os.path.exists(self.filename)
+
+    exists = __nonzero__

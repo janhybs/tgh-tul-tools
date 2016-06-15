@@ -19,7 +19,7 @@ define ('CONFIG_ROOT',  $jsonConfig->config);
 define('SERVICE_DEBUG', TRUE);
 define('MAX_WAIT_TIME', 75);
 
-class JobResult {
+class JobCode {
     const OK                        = 0;
     const RUN_OK                    = 0;
     
@@ -37,17 +37,17 @@ class JobResult {
     const UNKNOWN_ERROR             = 100;
     
     public static function toString($value) {
-        if ($value == JobResult::OK) return 'OK';
-        if ($value == JobResult::RUN_OK) return 'OK';
-        if ($value == JobResult::CORRECT_OUTPUT) return 'Správný výstup';
-        if ($value == JobResult::TIMEOUT_CORRECT_OUTPUT) return 'Správný výstup a překročen časový limit';
-        if ($value == JobResult::TIMEOUT_WRONG_OUTPUT) return 'Chybný výstup  a překročen časový limit';
-        if ($value == JobResult::WRONG_OUTPUT) return 'Chybný výstup';
-        if ($value == JobResult::COMPILE_ERROR) return 'Chyba při kompilaci';
-        if ($value == JobResult::RUN_ERROR) return 'Chyba při běhu';
-        if ($value == JobResult::TIMEOUT) return 'Úloha nedoržela časový limit';
-        if ($value == JobResult::GLOBAL_TIMEOUT) return 'Úloha nedoržela globální časový limit';
-        if ($value == JobResult::SKIPPED) return 'Test byl přeskočen';
+        if ($value == JobCode::OK) return 'OK';
+        if ($value == JobCode::RUN_OK) return 'OK';
+        if ($value == JobCode::CORRECT_OUTPUT) return 'Správný výstup';
+        if ($value == JobCode::TIMEOUT_CORRECT_OUTPUT) return 'Správný výstup a překročen časový limit';
+        if ($value == JobCode::TIMEOUT_WRONG_OUTPUT) return 'Chybný výstup  a překročen časový limit';
+        if ($value == JobCode::WRONG_OUTPUT) return 'Chybný výstup';
+        if ($value == JobCode::COMPILE_ERROR) return 'Chyba při kompilaci';
+        if ($value == JobCode::RUN_ERROR) return 'Chyba při běhu';
+        if ($value == JobCode::TIMEOUT) return 'Úloha nedoržela časový limit';
+        if ($value == JobCode::GLOBAL_TIMEOUT) return 'Úloha nedoržela globální časový limit';
+        if ($value == JobCode::SKIPPED) return 'Test byl přeskočen';
         return 'Neznámá chyba';
         
     }

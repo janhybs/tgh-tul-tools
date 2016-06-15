@@ -52,7 +52,13 @@ class DynamicLanguage(object):
 
 class Command(object):
 
-    CommandResult = namedtuple('CommandResult', ('exit', 'info', 'process', 'duration'), verbose=False)
+    class CommandResult(object):
+        def __init__(self, returncode=0, process=None, duration=0.0, terminated=False, global_terminated=False):
+            self.returncode = returncode
+            self.process = process
+            self.duration = duration
+            self.terminated = terminated
+            self.global_terminated = global_terminated
 
     def __init__(self, args, inn, out, err):
         self.inn_file = inn
@@ -67,8 +73,6 @@ class Command(object):
         self.command = '; '.join(args)
         self.timer = Timer()
         self.terminated = False
-
-        self.info = None
 
     def open_streams(self):
         ensure_path(self.inn_file)
@@ -112,40 +116,29 @@ class Command(object):
             thread.join()
 
     def run(self, timeout=60):
+        """
+        :rtype: jobs.job_processing.Command.CommandResult
+        """
         # empty command such as interpret language compilation
         if not self.command:
-            return Command.CommandResult(
-                exit=0,
-                process=None,
-                duration=0,
-                info=dict(
-                    terminated=False,
-                    returncode=0,
-                    error='',
-                    output=self.out_file,
-                    input=self.inn_file,
-                    duration=0
-                )
-            )
+            return Command.CommandResult()
+
         self.open_streams()
         self.timer.tick()
         self._run(timeout)
         self.timer.tock()
         self.close_streams()
 
-        self.info = dict(
-            terminated=self.terminated,
-            returncode=self.process.returncode,
-            error=read(self.err_file),
-            output=self.out_file,
-            input=self.inn_file,
-            duration=self.timer.duration*1000,
-        )
         # save global termination
         GlobalTimeout.decrease(self.timer.duration)
-        self.info['global_terminated'] = self.terminated and GlobalTimeout.invalid()
 
-        return Command.CommandResult(exit=self.process.returncode, info=self.info, process=self.process, duration=self.timer.duration*1000)
+        # return run result
+        return Command.CommandResult(
+            returncode=self.process.returncode,
+            duration=self.timer.duration*1000,
+            terminated=self.terminated,
+            global_terminated=self.terminated and GlobalTimeout.invalid()
+        )
 
 
 class LanguageProcess(object):
@@ -259,6 +252,6 @@ class LangMap(object):
     @staticmethod
     def get(name):
         """
-        :rtype : LanguageProcess
+        :rtype : class LanguageProcess
         """
         return LangMap.lang_map.get(name)

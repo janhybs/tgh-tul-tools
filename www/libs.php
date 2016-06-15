@@ -201,19 +201,12 @@ class JobJson {
         return $default;
     }
     
-    public function getRefUrl($url) {
+    public function getHref($url) {
+        if ($url === NULL)
+            return NULL;
         return str_replace(ROOT, SERVER_ROOT, $url);
     }
     
-    public function getDataUrl($url, $folder) {
-        return $this->getRefUrl(join_paths($folder, basename($url)));
-    }
-    
-    public function getRefUrlFromInput($input) {
-        '/var/www/html/test/tgh/problems/WEBISL/input/WEBISL_0.in';
-        $name = str_replace('.in', '', basename($input));
-        return $this->getRefUrl(str_replace("/input/$name.in", "/output/$name.out", $input));
-    }
     
     function __construct($json, $job) {
         $this->json = $json;
@@ -238,101 +231,48 @@ class JobJson {
 }
 
 class JobJsonResult {
-    public $input = FALSE;
-    public $output = FALSE;
     
-    public $input_download = FALSE;
-    public $output_download = FALSE;
-    public $reference_download = FALSE;
-    public $error_download = FALSE;
-    
-    public $id;
-    public $random;
-    public $random_str;
-    public $problem_size;
-    public $problem_size_str;
-
-    public $class_str;    
-    public $result;
-    public $result_str;
-    
-    public $details;
-    public $duration;
-    public $duration_str;
-    
-    function __construct($jobJson, $result) {
+    function __construct($jobJson, $resultJson) {
         
-        $info = (object)JobJson::get($result, 'info', array());
+        # info block
+        $info = (object)JobJson::get($resultJson, 'info', array());
         
-        $this->id           = JobJson::get($info, 'id', 'unknown');
-        $this->random       = JobJson::get($info, 'random', FALSE);
-        $this->problem_size = JobJson::get($info, 'problem_size', NULL);
-        $this->result       = JobJson::get($result, 'result', JobResult::UNKNOWN_ERROR); 
-        $this->duration     = JobJson::get($result, 'duration', 'NaN');
-        $this->command      = JobJson::get($result, 'command', '');
-
-        $this->class_str = $this->result <= JobResult::CORRECT_OUTPUT ? 'success' : 'danger';
-        if ($this->result == JobResult::SKIPPED)
-            $this->class_str = 'warning';
-        $this->result_str   = JobResult::toString($this->result);
-        $this->duration_str = sprintf("%1.3f ms", $this->duration);
-        $this->command_str  = explode( '/', preg_replace('/["\']+/i', '', $this->command));
-        $this->command_str  = end($this->command_str);
-        // if (!empty(trim($this->command_str)))
-        $this->command_str = 'Příkaz: ' . $this->command_str . "\n";
-            
-        $tmp = NULL;
-        $this->details  = empty($this->command_str) ? "<žádné informace>" : $this->command_str;
+        $this->case_id = JobJson::get($info, 'case_id');
+        $this->problem_random = JobJson::get($info, 'problem_random');
+        $this->problem_size = JobJson::get($info, 'problem_size');
+        $this->command = JobJson::get($info, 'command');
         
-        $tmp=JobJson::get($result, 'method');
-        if($tmp !== NULL) 
-            $this->details .= "Metoda: $tmp\n";
-            
-        $tmp = JobJson::get($result, 'error');
-        if($tmp !== NULL) 
-            $this->details .= "Error: $tmp\n";
-            
-        $tmp = JobJson::get($result, 'comparison');
-        if($tmp !== NULL) {
-            if (is_object($tmp))
-                $this->details .= "Porovnání: \n" . format_json($tmp) . "\n";
-            else
-                $this->details .= "Porovnání: \n" . $tmp . "\n";
-        }
-        $this->details = trim($this->details);
-        $this->details = str_replace(ROOT, '.', $this->details);
-
-        # IO files
-        $this->input = JobJson::get($result, 'input');
-        $this->output = JobJson::get($result, 'output');
+        # result block
+        $result = (object)JobJson::get($resultJson, 'result', array());
         
-        # input file always comes from "reference"
-        if ($this->input !== NULL) {
-            $this->input_download = $jobJson->getRefUrl($this->input);
-        }
+        $this->code = JobJson::get($result, 'code', JobCode::UNKNOWN_ERROR);
+        $this->name = JobJson::get($result, 'name', 'unknown');
+        $this->duration = JobJson::get($result, 'duration', 0.0);
+        $this->returncode = JobJson::get($result, 'returncode', 0);
+        $this->details = JobJson::get($result, 'details');
         
-        # reference output is only available if method (we take it from input file)
-        if (JobJson::get($result, 'method') === 'file-comparison')
-            $this->reference_download = $jobJson->getRefUrlFromInput($this->input);
+        # files block
+        $files = (object)JobJson::get($resultJson, 'files', array());
         
-        # general output depends on reference flag
-        if ($jobJson->reference) {
-            if ($this->output !== NULL) {
-                $this->output_download = $jobJson->getRefUrl($this->output);
-            
-                $e = replace_extension($this->output, '.err');
-                if (file_exists($e))
-                    $this->error_download = $jobJson->getRefUrl($e);
-            }
-    } else {
-            if ($this->output !== NULL) {
-                $this->output_download = $jobJson->getDataUrl($this->output, join_paths($jobJson->attempt_dir, 'output'));
-                
-                $e = replace_extension($this->output, '.err');
-                if (file_exists($e))
-                    $this->error_download = $jobJson->getDataUrl($e, join_paths($jobJson->attempt_dir, 'output')); 
-            }
-        }
+        $this->input_href = $jobJson->getHref(JobJson::get($files->input, 'server'));
+        $this->output_href = $jobJson->getHref(JobJson::get($files->output, 'server'));
+        $this->error_href = $jobJson->getHref(JobJson::get($files->error, 'server'));
+        $this->reference_href = $jobJson->getHref(JobJson::get($files->reference, 'server'));
+        $this->error = JobJson::get($files->error, 'content', '');
+        
+        # string representation
+         $this->result_str = JobCode::toString($this->code);
+         $this->duration_str = sprintf("%1.3f ms", $this->duration);
+         
+         $this->command_str  = explode( '/', preg_replace('/["\']+/i', '', $this->command));
+         $this->command_str  = end($this->command_str);
+         
+         $this->class_str = $this->code <= JobCode::TIMEOUT_CORRECT_OUTPUT ? 'success' : 'danger';
+         $this->class_str = $this->code == JobCode::SKIPPED ? 'warning' : $this->class_str;
+         
+         # building details
+         $this->details = empty($this->command_str) ? "<žádné informace>" : $this->command_str;
+         $this->details = empty($this->error) ? $this->details : $this->details . "\nError: $this->error";
     }
 }
 
