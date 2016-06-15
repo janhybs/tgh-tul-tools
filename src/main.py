@@ -141,7 +141,7 @@ class TGHProcessor(Daemon):
             main_result['summary'] = summary
             main_result['attempt_dir'] = dest_dir
             main_result['result'] = result
-            main_result['max_result'] = self.get_max_result(result)
+            main_result['max_result'] = max_status
 
             # save results
             result_json = json.dumps(main_result, indent=4, cls=MyEncoder)
@@ -250,12 +250,6 @@ def usage(msg=''):
 class MyEncoder(JSONEncoder):
     def default(self, o):
         return str(o)
-
-s = {JobResult.OK}
-s -= {JobResult.GLOBAL_TIMEOUT, JobResult.SKIPPED}
-print s
-
-exit(0)
 
 if __name__ == "__main__":
     args = sys.argv[1:]
