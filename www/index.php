@@ -105,7 +105,7 @@ if (empty($prefferedSource))  $prefferedSource    = @$history->source;
                 <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
-                <strong>Aktualizováno 29.5.</strong> Problémy hlaste na: jan.brezina at tul.cz. 
+                <strong>Aktualizováno 20.5.2016</strong> Problémy hlaste na: jan.brezina at tul.cz. 
                 <a href="http://atrey.karlin.mff.cuni.cz/~morf/vyuka/tgh/index.html" class="alert-link"><span class="glyphicon glyphicon-link" aria-hidden="true"></span>Stránka předmětu TGH</a>
             </div>
             
