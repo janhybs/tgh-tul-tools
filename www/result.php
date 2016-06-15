@@ -151,11 +151,13 @@ if (SERVICE_DEBUG)
 
         <div class="well" id="processing">Probíhá zpracování...
           <div class="progress">
-            <div class="progress-bar progress-bar-success progress-bar-striped active" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%">
+            <div class="progress-bar progress-bar-success progress-bar-striped active" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 0%" id="pbar">
               <span class="sr-only">running</span>
             </div>
           </div>
         </div>
+        
+        <script type="text/javascript" src="<?php echo SERVER_ROOT;?>/js/pbar.js"></script>
 
         <div class="alert alert-success" role="alert" id="output-holder" style="display: block;">
           <strong id="output-header">Probíhá zpracování úlohy</strong>

@@ -35,6 +35,11 @@
     opacity: 0.5;
 }
 
+.progress {
+    border: 1px solid green;
+    border-radius: 0;
+}
+
 #main-cont {
   margin-right: auto;
   margin-left: auto;
