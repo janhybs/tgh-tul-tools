@@ -149,7 +149,17 @@ if (SERVICE_DEBUG)
           <pre><?php echo $source; ?></pre>
         <?php else: ?>
 
-        <div class="well" id="processing">Probíhá zpracování...
+        <div class="well" id="processing">
+            <p>Probíhá zpracování...</p>
+            <p>
+                <small><small>
+                    Tato operace může trvat až <?php echo MAX_WAIT_TIME; ?>s.
+                    <?php if ($langInfo->scale > 1.0): ?>
+                        Pro programovací jazyk <strong><?php echo $langInfo->name; ?></strong> je časový limit zvýšený
+                        (<strong><?php echo $langInfo->scale; ?>×</strong>)
+                    <?php endif; ?>
+                </small></small>
+            </p>
           <div class="progress">
             <div class="progress-bar progress-bar-success progress-bar-striped active" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 0%" id="pbar">
               <span class="sr-only">running</span>
@@ -157,6 +167,7 @@ if (SERVICE_DEBUG)
           </div>
         </div>
         
+        <span id='lang-scale' style='display: none;'><?php echo $langInfo->scale; ?></span>
         <script type="text/javascript" src="<?php echo SERVER_ROOT;?>/js/pbar.js"></script>
 
         <div class="alert alert-success" role="alert" id="output-holder" style="display: block;">
@@ -167,7 +178,7 @@ if (SERVICE_DEBUG)
                 ob_flush();
                 flush();
                 try {
-                    $result = waitForResult($jobInfo);
+                    $result = waitForResult($jobInfo, $langInfo);
                 } catch (Exception $e) {
                     $result = (object)array(
                         'max_result' => JobCode::UNKNOWN_ERROR,
@@ -209,6 +220,14 @@ if (SERVICE_DEBUG)
                        </tr>
                    <?php endforeach; ?>
                 </table>
+                
+                <?php if ($langInfo->scale > 1.0): ?>
+                    <div class="alert alert-warning" role="alert">
+                        Pro programovací jazyk <strong><?php echo $langInfo->name; ?></strong> je časový limit zvýšený
+                        (<strong><?php echo $langInfo->scale; ?>×</strong>)
+                    </div>
+                <?php endif; ?>
+                
             <?php else: ?>
                 <h2>Fatal error</h2>
                 <div class="alert alert-danger">

@@ -73,6 +73,7 @@ class Command(object):
         self.command = '; '.join(args)
         self.timer = Timer()
         self.terminated = False
+        self.scale = 1.0
 
     def open_streams(self):
         ensure_path(self.inn_file)
@@ -90,7 +91,7 @@ class Command(object):
         self.err.close()
 
     def _run(self, timeout):
-        timeout = min([max_wait_time, timeout])
+        timeout = min([max_wait_time, timeout]) * self.scale
 
         def target():
             Logger.instance().info('Running command with time limit {:1.2f} s: {}'.format(timeout, self.command))

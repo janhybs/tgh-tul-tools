@@ -32,11 +32,13 @@ if (empty($prefferedSource))  $prefferedSource    = @$history->source;
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" >
+    <link rel="icon" type="image/png" href="favicon.png" />
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
     <title>TGH - odevzdání řešení</title>
 
     <!-- Bootstrap -->
-    <link href="<?php echo SERVER_ROOT;?>/css/bootstrap.min.css" rel="stylesheet">
+    <link href="<?php echo SERVER_ROOT;?>/css/bootstrap.min.css" rel="stylesheet" >
     <link href="<?php echo SERVER_ROOT;?>/css/main.css" rel="stylesheet">
     <link href="<?php echo SERVER_ROOT;?>/css/styles/default.css" rel="stylesheet" >
 

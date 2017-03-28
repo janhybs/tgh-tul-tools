@@ -248,6 +248,7 @@ class StudentJob(object):
         # run command
         run_args = self.module.run()
         run_command = Command(run_args, inn_file, out_file, err_file)
+        run_command.scale = self.r.lang.scale
         run_result = run_command.run(input_spec.time * wait_timescale)
 
         # grab result
@@ -290,7 +291,8 @@ class StudentJob(object):
             case_result.error = compare_result.get('error', None)
 
         # mark timeout results
-        if run_result.duration/1000 > input_spec.time:
+        max_runtime = input_spec.time * self.r.lang.scale
+        if run_result.duration/1000 > max_runtime:
             if case_result.result is JobCode.CORRECT_OUTPUT:
                 case_result.result = JobCode.TIMEOUT_CORRECT_OUTPUT
 
@@ -452,6 +454,7 @@ class ReferenceJob(object):
         # run command
         run_args = self.module.run()
         run_command = Command(run_args, inn_file, out_file, err_file)
+        run_command.scale = self.r.lang.scale
         run_result = run_command.run()
 
         # grab result

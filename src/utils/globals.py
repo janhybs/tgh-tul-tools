@@ -5,6 +5,7 @@
 import json, os
 import random
 
+from config import max_wait_time
 
 class Config(object):
     watch_dir = None
@@ -144,8 +145,8 @@ def random_range(max, count, min=1):
 
 
 class GlobalTimeout(object):
-    _global_time = 60
-    _out_of_time = .1
+    _global_time = max_wait_time
+    _out_of_time = 0.1
     _time_left = _global_time
 
     @classmethod

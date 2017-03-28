@@ -81,7 +81,7 @@ function get_download_button($url, $link, $alt, $hide=FALSE, $cls="") {
 }
 
 
-function waitForResult ($job) {
+function waitForResult ($job, $lang) {
     $lockFile = join_paths($job->root, '.delete-me');
     $resultFile = join_paths($job->root, 'result.json');
     $time = 0;
@@ -95,7 +95,8 @@ function waitForResult ($job) {
     
     
     # wait for file to get deleted
-    while($time < MAX_WAIT_TIME) {
+    $max_wait_time = MAX_WAIT_TIME * $lang->scale;
+    while($time < $max_wait_time) {
         if (!file_exists($lockFile) && file_exists($resultFile)) {
             $graceful = TRUE;
             break;

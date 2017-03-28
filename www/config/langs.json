@@ -5,7 +5,8 @@
         "name": "C#",
         "version": "Mono 3.0.7",
         "compile": "gmcs",
-        "run": "mono"
+        "run": "mono",
+        "scale": 2.0
     },
     "C": {
         "id": "C",
@@ -13,7 +14,8 @@
         "name": "C",
         "version": "gcc 4.7.2.5",
         "compile": "/opt/centos/devtoolset-1.1/root/usr/bin/gcc",
-        "run": true
+        "run": true,
+        "scale": 1.0
     },
     "CPP": {
         "id": "CPP",
@@ -22,7 +24,8 @@
         "version": "g++ 4.7.2.5",
         "compilea": "/opt/centos/devtoolset-1.1/root/usr/bin/g++",
         "compile": "g++",
-        "run": true
+        "run": true,
+        "scale": 1.0
     },
     "CPP11": {
         "id": "CPP11",
@@ -30,7 +33,8 @@
         "name": "C++11",
         "version": "g++ 4.7.2.5",
         "compile": "/opt/centos/devtoolset-1.1/root/usr/bin/g++",
-        "run": true
+        "run": true,
+        "scale": 1.0
     },
     "JAVA": {
         "id": "JAVA",
@@ -38,7 +42,8 @@
         "name": "Java",
         "version": "java 1.8.0_91",
         "compile": "/etc/alternatives/java_sdk_1.8.0/bin/javac",
-        "run": "/etc/alternatives/java_sdk_1.8.0/bin/java"
+        "run": "/etc/alternatives/java_sdk_1.8.0/bin/java",
+        "scale": 2.6
     },
     "PASCAL": {
         "id": "PASCAL",
@@ -46,7 +51,8 @@
         "name": "Pascal",
         "version": "fpc 2.4.0",
         "compile": "fpc",
-        "run": true
+        "run": true,
+        "scale": 2.6
     },
     "PYTHON27": {
         "id": "PYTHON27",
@@ -54,7 +60,8 @@
         "name": "Python",
         "version": "python 2.7.6",
         "compile": false,
-        "run": "python2.7"
+        "run": "python2.7",
+        "scale": 4.4
     },
     "PYTHON35": {
         "id": "PYTHON35",
@@ -62,6 +69,7 @@
         "name": "Python",
         "version": "python 3.5.0",
         "compile": false,
-        "run": "python3.5"
+        "run": "python3.5",
+        "scale": 5.0
     }
 }

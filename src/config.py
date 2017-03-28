@@ -3,12 +3,15 @@
 # author:   Jan Hybs
 # 
 
-runner_sleep =      5 # 10 sec sleep
-watchdog_sleep =    30 # 30 sec sleep
+runner_sleep =      5   # 5 sec sleep
+watchdog_sleep =    30  # 30 sec sleep
 
 runner_pidfile =    '/tmp/tgh-runner.pid'
 watchdog_pidfile =  '/tmp/tgh-watchdog.pid'
 run_service =       'tgh-service restart'
 
-max_wait_time = 60
-wait_timescale = 10
+max_wait_time =     60  # maximum wait time for entire students job in sec
+wait_timescale =    10  # multiplicative factor to wait extra long time to get 
+                        # return codes 
+                        #   - TIMEOUT_CORRECT_OUTPUT
+                        #   - TIMEOUT_WRONG_OUTPUT

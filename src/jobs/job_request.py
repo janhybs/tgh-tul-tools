@@ -48,6 +48,10 @@ class Lang(object):
         self.version = o.get('version', None)
         self.compile = o.get('compile', None)
         self.run = o.get('run', None)
+        self.scale = o.get('scale', 1.0)
+        
+    def __repr__(self):
+        return 'Language {self.id} ({self.version}), scale: {self.scale}x'.format(self=self)
 
 
 class Problem(object):
