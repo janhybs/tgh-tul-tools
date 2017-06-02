@@ -1,13 +1,12 @@
 <?php
 
-define ('ROOT',                     '/var/www/html/tgh.nti.tul.cz');
-define ('SERVER_ROOT',              'https://tgh.nti.tul.cz');
-$config = file_get_contents(ROOT .  '/config/config-tgh.json');
+// define ('ROOT',                     '/var/www/html/tgh.nti.tul.cz');
+// define ('SERVER_ROOT',              'https://tgh.nti.tul.cz');
+// $config = file_get_contents(ROOT .  '/config/config-tgh.json');
 
-// define ('ROOT', '/var/www/html/test/tgh');
-// define ('SERVER_ROOT', 'http://hybs.nti.tul.cz/test/tgh');
-// $config = file_get_contents(ROOT . '/config/config-hybs.json');
-
+define ('ROOT', '/var/www/html/test/tgh');
+define ('SERVER_ROOT', 'http://hybs.nti.tul.cz/test/tgh');
+$config = file_get_contents(ROOT . '/config/config-hybs.json');
 
 $jsonConfig = json_decode($config);
 define ('JOBS_ROOT',    $jsonConfig->jobs);
@@ -35,7 +34,7 @@ class JobCode {
     const GLOBAL_TIMEOUT            = 40;
     const SKIPPED                   = 50;
     const UNKNOWN_ERROR             = 100;
-    
+
     public static function toString($value) {
         if ($value == JobCode::OK) return 'OK';
         if ($value == JobCode::RUN_OK) return 'OK';
@@ -49,7 +48,7 @@ class JobCode {
         if ($value == JobCode::GLOBAL_TIMEOUT) return 'Úloha nedoržela globální časový limit';
         if ($value == JobCode::SKIPPED) return 'Test byl přeskočen';
         return 'Neznámá chyba';
-        
+
     }
 }
 
@@ -67,20 +66,20 @@ $jsonLangs      = FALSE;
 
 function getLanguages() {
     global $jsonLangs;
-    
+
     if ($jsonLangs !== FALSE)
         return $jsonLangs;
 
     $data = file_get_contents(CONFIG_ROOT . '/langs.yaml');
     $jsonLangs = array_to_object(yaml_parse($data));
-    
+
     return $jsonLangs;
 }
 
 
 function getProblems() {
     global $jsonProblems;
-    
+
     if ($jsonProblems !== FALSE)
         return $jsonProblems;
 

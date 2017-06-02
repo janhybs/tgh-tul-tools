@@ -69,8 +69,8 @@ class Command(object):
         self.err = None
 
         self.process = None
-        self.args = args    # type: PopenArgs
-        self.command = '; '.join(args)
+        self.args = args
+        self.command = '; '.join(args.command)
         self.timer = Timer()
         self.terminated = False
         self.scale = 1.0
@@ -125,7 +125,7 @@ class Command(object):
         :rtype: jobs.job_processing.Command.CommandResult
         """
         # empty command such as interpret language compilation
-        if not self.command:
+        if not self.args.command:
             return Command.CommandResult()
 
         self.open_streams()
