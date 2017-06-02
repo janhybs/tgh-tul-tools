@@ -17,8 +17,8 @@ from subprocess import call
 from config import runner_pidfile, runner_sleep
 
 # utf hax
-reload(sys)
-sys.setdefaultencoding("utf-8")
+# reload(sys)
+# sys.setdefaultencoding("utf-8")
 
 
 class TGHProcessor(Daemon):
@@ -244,8 +244,9 @@ class TGHProcessor(Daemon):
 
 
 def usage(msg=''):
-    if msg: print msg
-    print 'usage: main.py start|stop|restart|debug <config.json>'
+    if msg:
+        print(msg)
+    print('usage: main.py start|stop|restart|debug <config.json>')
     sys.exit(1)
 
 

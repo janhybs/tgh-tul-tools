@@ -24,21 +24,20 @@ class DynamicLanguage(object):
         return self.processor.compile()
 
     def run(self, rnd=False, validate=None, prepare=None):
-        actions = self.processor.run()
-        dyn_action = actions[-1]
+        popen_args = self.processor.run()      # type: PopenArgs
 
         if prepare:
-            dyn_action += " -p {}".format(prepare)
+            popen_args.command += ['-p', str(prepare)]
 
         if rnd:
-            dyn_action += " -r {}".format(random.randint(1,10**10))
+            popen_args.command += ['-r', str(random.randint(1, 10**10))]
 
         if validate:
-            dyn_action += ' -v "{}" "{}"'.format(*validate)
+            popen_args.command += ['-v']
+            popen_args.command.extend(validate)
+            # dyn_action += ' -v "{}" "{}"'.format(*validate)
 
-        actions[-1] = dyn_action
-
-        return actions
+        return popen_args
 
     @staticmethod
     def _generate_ref_request(request):
@@ -97,8 +96,8 @@ class Command(object):
             Logger.instance().info('Running command with time limit {:1.2f} s: {} in {}'.format(timeout, self.args.command, self.args.cwd))
             self.process = Popen(self.args.command, stdout=self.out, stderr=self.err, stdin=self.inn, cwd=self.args.cwd)
             Logger.instance().info('started PID {}'.format(self.process.pid))
-            self.process.communicate()
-            Logger.instance().info('Command finished')
+            self.process.wait()  # process itself is not limited but there is global limit
+            Logger.instance().info('Command finished with %d' % self.process.returncode)
 
         thread = threading.Thread(target=target)
         thread.start()
@@ -149,7 +148,7 @@ class Command(object):
 class PopenArgs(object):
     def __init__(self, cwd=None, *args):
         self.cwd = cwd
-        self.command = args
+        self.command = list(args)
 
 
 class LanguageProcess(object):

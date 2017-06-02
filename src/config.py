@@ -14,4 +14,4 @@ max_wait_time =     30  # maximum wait time for entire students job in sec
 wait_timescale =     2  # multiplicative factor to wait extra long time to get 
                         # return codes 
                         #   - TIMEOUT_CORRECT_OUTPUT
-                        #   - TIMEOUT_WRONG_OUTPUTpip3 
+                        #   - TIMEOUT_WRONG_OUTPUT

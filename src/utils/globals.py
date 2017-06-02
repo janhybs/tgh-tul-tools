@@ -110,8 +110,8 @@ def compare(a, b):
         while True:
 
             # read lines
-            l1 = f1.readline()
-            l2 = f2.readline()
+            l1 = f1.readline().decode()
+            l2 = f2.readline().decode()
             eof = l1 == ''
 
             # right strip white chars (\r\n, \n, \r, max differ)
