@@ -118,5 +118,6 @@ dl {
 }
 
 .input-group {
-margin-bottom: 15px;
+    margin-bottom: 15px;
+    width: 100%;
 }

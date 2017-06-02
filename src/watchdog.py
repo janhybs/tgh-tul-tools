@@ -19,17 +19,17 @@ class TGHWatchDogDaemon(Daemon):
         while True:
             # if file exists, service is not probably running
             if not os.path.isfile(self.file_to_watch):
-                print 'File {self.file_to_watch} does not exists. Running service command:' .format(self=self)
+                print('File {self.file_to_watch} does not exists. Running service command:' .format(self=self))
 
                 # start service
-                print 'running "{}"'.format(run_service)
+                print('running "{}"'.format(run_service))
                 process = Popen(run_service, shell=True)
                 out, err = process.communicate()
-                print 'output: '
-                print out, err
+                print('output: ')
+                print(out, err)
 
             # sleep for 5 sec
-            print 'sleeping {} sec'.format(watchdog_sleep)
+            print('sleeping {} sec'.format(watchdog_sleep))
             time.sleep(watchdog_sleep)
 
 
@@ -38,8 +38,8 @@ if __name__ == "__main__":
     parser.set_usage("%prog start|stop|restart|debug")
     options, args = parser.parse_args()
 
-    print 'Running as "{}"'.format(getpass.getuser())
-    print 'Watching file "{}"'.format(runner_pidfile)
+    print('Running as "{}"'.format(getpass.getuser()))
+    print('Watching file "{}"'.format(runner_pidfile))
 
     daemon = TGHWatchDogDaemon(runner_pidfile, pidfile=watchdog_pidfile, name='TGH-watchdog-D')
     if not args:

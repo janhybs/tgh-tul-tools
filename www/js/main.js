@@ -3,7 +3,7 @@ $( document ).ready(
         var selectedProblem  = $ (document.forms['send-code']['selected-problem']);
         var problemName      = $ ('.problem-name');
         var problemURL       = $ ('.problem-url');
-        var langs = {c: ""}
+        var langs            = {c: ""}
 
         selectedProblem.change (function (e) {
             var value = selectedProblem.val ();
@@ -90,7 +90,7 @@ $( document ).ready(
         });
 
         selectedLanguage.trigger ('change');
-
+        hljs.initHighlighting ();
 
 
 

@@ -1,0 +1,195 @@
+---
+TEST:
+  id: TEST
+  name: IO test
+  ref_script: test_ref.py
+  ref_lang: PYTHON27
+  multiple_solution: true
+  problem_size_description: ''
+  input:
+  - id: TEST_1
+    problem_size: 5
+    random: true
+    time: 1
+  - id: TEST_2
+    problem_size: 150
+    random: false
+    time: 1
+  - id: TEST_3
+    time: 1
+
+MINOS:
+  id: MINOS
+  name: Bludiste
+  ref_script: minos.cpp
+  ref_lang: CPP11
+  input:
+  - #size: 3x3
+    id: MINOS_1
+    time: 0.01
+  - #size: 5x5
+    id: MINOS_2
+    time: 0.01
+    
+  - id: MINOS_3
+    problem_size: 20
+    time: 0.01
+    random: false
+  - id: MINOS_4
+    problem_size: 30
+    time: 0.01
+    random: true
+  - id: MINOS_5
+    problem_size: 1000      # 0.008 s
+    time: 0.01
+  - id: MINOS_6
+    problem_size: 10000
+    time: 0.1               # 0.063 s
+  - id: MINOS_7
+    problem_size: 100000
+    time: 1                 # 0.414 s
+    
+WEBISL:
+  id: WEBISL
+  name: Web islands
+  ref_script: webisl.cpp
+  ref_lang: CPP
+  multiple_solution: false
+  problem_size_description: ''
+  input:
+  - problem_size: 4
+    id: WEBISL_case_1
+    time: 0.01
+  - problem_size: 6
+    id: WEBISL_case_2
+    time: 0.01
+  - problem_size: 8
+    id: WEBISL_case_3
+    time: 0.01
+  - problem_size: 10
+    id: WEBISL_case_4
+    time: 0.01
+    random: true
+  - problem_size: 100
+    id: WEBISL_case_5
+    time: 0.01
+    random: true
+  - problem_size: 1000
+    id: WEBISL_case_6
+    time: 0.05               # 0.016 s
+    random: false
+  - problem_size: 10000
+    id: WEBISL_case_7
+    time: 0.2                # 0.113 s
+    random: false
+  - problem_size: 100000
+    id: WEBISL_case_8
+    time: 2                  # 1 s
+    random: false
+  - problem_size: 500000
+    id: WEBISL_case_9
+    time: 10                 # 5 s
+    random: false
+  
+IDOS:
+  id: IDOS
+  name: IDOS
+  ref_script: idos.py
+  ref_lang: PYTHON27
+  input:
+  - id: IDOS_1          
+    time: 0.1           # 0.070 s
+  - id: IDOS_2
+    time: 0.1           # 0.070 s
+  
+  - id: IDOS_3
+    problem_size: 10
+    time: 0.2           # 0.1 s
+  - id: IDOS_4
+    problem_size: 20
+    time: 0.4           # 0.2 s
+    random: true
+  - id: IDOS_5
+    problem_size: 100
+    time: 2             # 1s
+  - id: IDOS_6
+    problem_size: 200
+    time: 5             # 2s
+# works localy but not on server, unknown error
+#  - id: IDOS_7
+#    problem_size: 800
+#    time: 20             # 2s
+
+    
+SEGMENT:
+  id: SEGMENT
+  name: Segmentace obrazu
+  ref_script: segment.py
+  ref_lang: PYTHON27
+  input:
+  - id: SEGMENT_1
+    time: 60
+  - id: SEGMENT_2
+    time: 60
+
+  - id: SEGMENT_3
+    problem_size: 16
+    time: 60
+  - id: SEGMENT_4
+    problem_size: 64
+    time: 60
+  - id: SEGMENT_5
+    problem_size: 256
+    time: 60
+  - id: SEGMENT_6
+    problem_size: 1024
+    time: 60
+
+SUDOGOB:
+  id: SUDOGOB
+  name: Sudoku
+  ref_script: "../generic"
+  input:
+  - id: SUDOGOB_1
+    time: 0.1
+  - id: SUDOGOB_2
+    time: 26
+
+    
+RELCONN:
+  id: RELCONN
+  name: Nejspolehlivejsi cesta
+  ref_script: relconn_general.cc
+  ref_lang: CPP11
+  input:
+  - comment: problem size 6
+    id: RELCONN_1
+    time: 0.01                 # 0.008
+  - problem_size: 8
+    id: RELCONN_2
+    time: 0.01                 # 0.008
+  - problem_size: 9
+    id: RELCONN_3
+    time: 0.01                 # 0.008
+  - problem_size: 8
+    id: RELCONN_4
+    time: 0.01                 # 0.008
+  - problem_size: 11
+    id: RELCONN_5
+    time: 0.01                 # 0.008
+    random: true
+  - problem_size: 100
+    id: RELCONN_6
+    time: 0.06                 # 0.030
+  - problem_size: 1000
+    id: RELCONN_7
+    time: 0.5                  # 0.250
+  - problem_size: 10000
+    id: RELCONN_8
+    time: 5                    # 2.5
+  - problem_size: 20000
+    id: RELCONN_9
+    time: 10                   # 5 
+      
+   
+

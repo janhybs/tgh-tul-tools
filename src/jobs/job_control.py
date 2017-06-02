@@ -7,6 +7,7 @@ import threading
 import time
 import datetime
 
+
 from jobs.job_processing import DynamicLanguage, Command, LangMap
 from jobs.job_request import ProblemInput
 from utils.globals import remove_empty, compare, tryjson, Config, ensure_path, GlobalTimeout, \
@@ -165,7 +166,7 @@ class JobControl(object):
         """
 
         # reset global time for this solution
-        GlobalTimeout.reset()
+        GlobalTimeout.reset(request.lang.scale)
 
         # prepare output
         ensure_path(os.path.join(request.root, 'output'), False)
@@ -209,7 +210,9 @@ class StudentJob(object):
             raise ProcessException(prepared)
 
         results = list()
-        for input_spec in self.r.problem.input:
+        for case in self.r.cases:
+            input_spec = next((x for x in self.r.problem.input if x.id == case), None)
+            # input_spec = self.r.problem.input[case]
             Logger.instance().debug('  {case_id}: {input_spec}'.format(case_id=input_spec.id, input_spec=input_spec))
             if input_spec.dynamic:
                 results.extend(self._dynamic(input_spec))
@@ -409,6 +412,7 @@ class ReferenceJob(object):
             # run command
             run_args = self.module.run(prepare=input_spec.problem_size, rnd=input_spec.random)
             run_command = Command(run_args, inn_file, out_file, err_file)
+            run_command.scale = self.r.lang.scale
             run_result = run_command.run()
 
             # grab result

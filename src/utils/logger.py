@@ -59,7 +59,7 @@ class Logger(object):
                 with open(f, 'a+') as fp:
                     fp.write('\n' * 3)
         except Exception as e:
-            print e
+            print(e)
         
         # start logging
         self.info("{:%d-%m-%Y %H:%M:%S}".format(datetime.datetime.now()))

@@ -15,7 +15,8 @@ $canRef = user_allowed_reference($user);
 $lang = @$_POST['selected-language'];
 $problem = @$_POST['selected-problem'];
 $source = @$_POST['source-code'];
-$ref = isset($_POST['reference-solution']);
+$ref = !empty($_POST['reference-solution']);
+$cases = @$_POST['selected-cases'];
 $username = $user->username;
 
 # save recent source-code task and more
@@ -26,7 +27,7 @@ $history->problem   = $problem;
 $_SESSION['history'] = $history;
 
 
-if (! isset ($_POST['selected-language'], $_POST['selected-problem'], $_POST['source-code']))
+if (! isset ($_POST['selected-language'], $_POST['selected-problem'], $_POST['source-code'], $_POST['selected-cases']))
   redirect("");
 
 # language check
@@ -55,6 +56,8 @@ $jobInfo->nameuser = $user->nameuser;
 $jobInfo->lang_id = $languages->$lang->id;
 $jobInfo->problem_id = $problems->$problem->id;
 $jobInfo->reference = $ref ? TRUE : FALSE;
+$jobInfo->cases = $cases;
+
 
 
 # write files
@@ -64,6 +67,7 @@ file_put_contents("$jobInfo->root/" . $jobInfo->filename, $source);
 file_put_contents("$jobInfo->root/config.json", $jsonInfo);
 file_put_contents("$jobInfo->root/.delete-me", 'Python will delete me!');
 
+
 # get service statuses
 $status = getServiceStatus();
 if (SERVICE_DEBUG)
@@ -71,6 +75,10 @@ if (SERVICE_DEBUG)
 
 // ob_end_flush();
 // ob_start();
+// 
+// echo '<pre>';
+// print_r($_POST);
+// echo '</pre>';
 ?>
 
 <!DOCTYPE html>

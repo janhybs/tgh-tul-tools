@@ -17,7 +17,7 @@ define ('CONFIG_ROOT',  $jsonConfig->config);
 
 
 define('SERVICE_DEBUG', TRUE);
-define('MAX_WAIT_TIME', 75);
+define('MAX_WAIT_TIME', 30+5);
 
 class JobCode {
     const OK                        = 0;
@@ -71,8 +71,8 @@ function getLanguages() {
     if ($jsonLangs !== FALSE)
         return $jsonLangs;
 
-    $data = file_get_contents(CONFIG_ROOT . '/langs.json');
-    $jsonLangs = json_decode($data);
+    $data = file_get_contents(CONFIG_ROOT . '/langs.yaml');
+    $jsonLangs = array_to_object(yaml_parse($data));
     
     return $jsonLangs;
 }
@@ -84,8 +84,8 @@ function getProblems() {
     if ($jsonProblems !== FALSE)
         return $jsonProblems;
 
-    $data = file_get_contents(CONFIG_ROOT . '/problems.json');
-    $jsonProblems = json_decode($data);
+    $data = file_get_contents(CONFIG_ROOT . '/problems.yaml');
+    $jsonProblems = array_to_object(yaml_parse($data));
     
     return $jsonProblems;
 }

@@ -69,8 +69,8 @@ class TGHProcessor(Daemon):
         return json_jobs
 
     def run(self):
-        Langs.init(os.path.join(Config.config_dir, 'langs.json'))
-        Problems.init(os.path.join(Config.config_dir, 'problems.json'))
+        Langs.init(os.path.join(Config.config_dir, 'langs.yaml'))
+        Problems.init(os.path.join(Config.config_dir, 'problems.yaml'))
 
         while True:
             jobs = self.get_jobs()

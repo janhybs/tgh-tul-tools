@@ -1,5 +1,5 @@
 var pbar = document.getElementById('pbar');
-var duration = 10 + 65 * Number(document.getElementById('lang-scale').innerHTML);
+var duration = 5 + 30 * Number(document.getElementById('lang-scale').innerHTML);
 var current = Date.now();
 var future = Date.now() + duration*1000;
 var tid = setInterval(function() {

@@ -5,6 +5,7 @@
 import json, os, sys, datetime
 from utils.globals import Langs, random_range
 from utils.globals import Problems
+from pluck import pluck
 
 
 class JobRequest(object):
@@ -31,6 +32,13 @@ class JobRequest(object):
 
         self.lang = Langs.get(request.get('lang_id', None))
         self.problem = Problems.get(request.get('problem_id', None))
+        try:
+            self.cases = request.get('cases', pluck(self.problem.input if self.problem else [], 'id'))
+        except Exception as e:
+            print e
+            self.cases = []
+            raise 
+        
 
         self.result_file = os.path.join(self.root, 'result.json')
         self.output_root = os.path.join(self.root, 'output')

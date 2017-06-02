@@ -1,0 +1,7 @@
+{
+    "problems":     "/var/www/html/test/tgh/problems",
+    "jobs":         "/var/www/html/test/tgh/jobs",
+    "data":         "/var/www/html/test/tgh/data",
+    "config":       "/var/www/html/test/tgh/config",
+    "log_file":     "/var/www/html/test/tgh/jobs/service.log"
+}

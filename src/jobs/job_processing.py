@@ -116,7 +116,7 @@ class Command(object):
                 pass
             thread.join()
 
-    def run(self, timeout=60):
+    def run(self, timeout=max_wait_time):
         """
         :rtype: jobs.job_processing.Command.CommandResult
         """

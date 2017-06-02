@@ -24,8 +24,12 @@ $history = @$_SESSION['history'];
 if (empty($prefferedProblem)) $prefferedProblem   = @$history->problem;
 if (empty($prefferedLang))    $prefferedLang      = @$history->lang;
 if (empty($prefferedSource))  $prefferedSource    = @$history->source;
-?>
 
+echo '<pre>';
+// isset($_SESSION);
+echo '</pre>';
+
+?>
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -111,7 +115,7 @@ if (empty($prefferedSource))  $prefferedSource    = @$history->source;
                 <a href="http://atrey.karlin.mff.cuni.cz/~morf/vyuka/tgh/index.html" class="alert-link"><span class="glyphicon glyphicon-link" aria-hidden="true"></span>Stránka předmětu TGH</a>
             </div>
             
-            <form name="send-code" action="<?php echo SERVER_ROOT;?>/result/" method="post" accept-charset="utf-8">
+            <form name="send-code" action="<?php echo SERVER_ROOT;?>/cases/" method="post" accept-charset="utf-8">
 
                 <label for="selected-problem">Problém</label>
                 <div class="input-group">
@@ -165,7 +169,7 @@ if (empty($prefferedSource))  $prefferedSource    = @$history->source;
                     <textarea class="form-control" rows="20" name="source-code" id="source-code"><?php echo $prefferedSource; ?></textarea>
                 </div>
 
-                <input type="submit" class="btn btn-success btn-large" value="Odevzdat řešení"/>
+                <input type="submit" class="btn btn-success btn-large" value="Pokračovat"/>
             </form>
         <?php endif; ?>
       </div>

@@ -4,6 +4,7 @@
 
 import json, os
 import random
+import yaml
 
 from config import max_wait_time
 
@@ -23,7 +24,7 @@ class Langs(object):
     def reload(cls):
         from jobs.job_request import Lang
         with open(cls.json_file, 'r') as fp:
-            items = json.load(fp)
+            items = yaml.load(fp)
             for k, v in items.items():
                 cls.items[k] = Lang(v)
 
@@ -50,7 +51,7 @@ class Problems(object):
         from jobs.job_request import Problem
 
         with open(cls.json_file, 'r') as fp:
-            items = json.load(fp)
+            items = yaml.load(fp)
             for k, v in items.items():
                 cls.items[k] = Problem(v)
 
@@ -150,14 +151,14 @@ class GlobalTimeout(object):
     _time_left = _global_time
 
     @classmethod
-    def reset(cls):
-        cls._time_left = cls._global_time
-        print 'Time reset:     [remaining: {:1.2f}]'.format(cls.time_left())
+    def reset(cls, scale=1.0):
+        cls._time_left = cls._global_time * scale
+        print('Time reset:     [remaining: {:1.2f}]'.format(cls.time_left()))
 
     @classmethod
     def decrease(cls, duration):
         cls._time_left -= duration
-        print 'Time decreased: [remaining: {:1.2f}]'.format(cls.time_left())
+        print('Time decreased: [remaining: {:1.2f}]'.format(cls.time_left()))
 
     @classmethod
     def time_left(cls):

@@ -20,7 +20,7 @@ class Daemon(object):
         self.pidfile = pidfile
     
     def debug(self):
-        print 'Debugging service "{self.name}" ({self.pidfile})'.format(self=self)
+        print('Debugging service "{self.name}" ({self.pidfile})'.format(self=self))
         self.run()
        
     def daemonize(self):
@@ -89,7 +89,7 @@ class Daemon(object):
             sys.exit(1)
            
         # Start the daemon
-        print "Deamon {:s} running".format (self.name)
+        print("Deamon {:s} running".format (self.name))
         self.daemonize()
         self.run()
  
@@ -115,15 +115,15 @@ class Daemon(object):
             while 1:
                 os.kill(pid, SIGTERM)
                 time.sleep(0.1)
-        except OSError, err:
+        except OSError as err:
             err = str(err)
             if err.find("No such process") > 0:
                 if os.path.exists(self.pidfile):
                     os.remove(self.pidfile)
             else:
-                print str(err)
+                print(str(err))
                 sys.exit(1)
-        print "Deamon {:s} stopped".format (self.name)
+        print("Deamon {:s} stopped".format (self.name))
  
     def restart(self):
         """

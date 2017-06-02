@@ -3,6 +3,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <vector>
+#include <exception>
 using namespace std;
 
 
@@ -14,6 +15,10 @@ using namespace std;
 #define dout ostream(0)
 #endif
 
+
+class NonUnique : public std::exception {
+};
+
 typedef unsigned int uint;
 
 
@@ -21,17 +26,38 @@ struct Vtx {
   uint idx;
   int heap_idx;
   uint ix,iy;
-  int dist_rock;
-  uint dist_entrance;
-  uint mst_parent;
-  uint rock[4];
-  int ngh[4];
+  int dist_rock; // actual cheapest edge to MST
+  uint dist_entrance; //  actual distance from entrance
+  uint mst_parent; // actual incomming edge
+  
+  // indexing of edges: east(1), west(2), south(4), north(8)
+  uint rock[4]; // hardness of the rock, for closed vtx: -1 no edge , -2 edge in MST 
+  int ngh[4]; // neighbour vtx 
+  
+  
+  inline bool gt(uint rock, uint entrance) const {
+    return (dist_rock > rock) ||
+    (dist_rock == rock && dist_entrance > entrance);
+  }
+  
+  
   inline bool operator <(const Vtx&other) {
-    return (dist_rock < other.dist_rock) ||
-           (dist_rock == other.dist_rock && dist_entrance<other.dist_entrance);
+    return other.gt(dist_rock, dist_entrance);
+  }
+  
+  inline void neq(uint rock, uint entrance) const {
+    if (dist_rock == rock && dist_entrance == entrance) {
+            cerr 
+            << dist_rock << ", "
+            << rock << ", "
+            << dist_entrance << ", "
+            << entrance << endl;
+            throw NonUnique();
+    }
   }
 };
 
+// edge position in the ngh vtx array
 const int back_idx[4]={1, 0, 3, 2};
 
 class PQ {
@@ -42,8 +68,14 @@ public:
     int x_dir[4]={1,-1,0,0};
     int y_dir[4]={0,0,-1,1};
     count=0;
-    
+
+    if (std::min(m,n) <= 100)
+        modulo = 256;
+    else 
+        modulo = 256*256;
     r_num=seed;
+    //cout << "s: " << seed << "mod: " << modulo << endl;
+    
     // make graph
     graph.resize(n*m);
     for(uint iy=0; iy<n; iy++)
@@ -54,7 +86,7 @@ public:
         vtx.iy=iy;
         vtx.idx=idx;
         vtx.dist_entrance=2*n*m;
-        vtx.dist_rock=256;
+        vtx.dist_rock=modulo;
         vtx.heap_idx=-1;
         vtx.mst_parent=-1;
         for(uint idir=0;idir<4;idir++) {
@@ -65,7 +97,7 @@ public:
             vtx.rock[idir]=-1;
           } else {  
             vtx.ngh[idir]=jx+m*jy;
-            vtx.rock[idir]=256;
+            vtx.rock[idir]=modulo;
           }  
           //cout <<  iy << " " << ix<<" " << idir << ":" << vtx.ngh[idir] << endl; 
         }  
@@ -77,12 +109,14 @@ public:
     graph[0].dist_rock=0;
     graph[0].mst_parent=-1;
   }  
+  
+  
   inline uint random() {
-    uint r=r_num;
-    r_num=(r * 1664525) + 1013904223;
-    //cout << "r:" << (r & 0xff) << endl;
-    return r & 0xff;
+        
+    r_num=((r_num * 1664525) + 1013904223)%modulo;
+    return r_num;
   }  
+  
   
   inline void heap_remove(uint idx) {
     graph[ heap[idx] ].heap_idx=-1;
@@ -90,16 +124,17 @@ public:
     heap.pop_back();
     graph[ heap[idx] ].heap_idx=idx;
   }  
+  
+  
   inline void heap_swap(uint i, uint j) {
     graph[heap[i]].heap_idx=j;
     graph[heap[j]].heap_idx=i;
     swap(heap[i],heap[j]);
   }  
+  
+  
   inline bool heap_lt(uint i, uint j) {
-    return 
-      graph[heap[i]].dist_rock < graph[heap[j]].dist_rock || 
-      graph[heap[i]].dist_rock == graph[heap[j]].dist_rock &&
-      graph[heap[i]].dist_entrance < graph[heap[j]].dist_entrance;
+      return graph[heap[i]] < graph[heap[j]];
   }  
   
   inline Vtx & pop_head() {
@@ -115,15 +150,28 @@ public:
       heap_swap(ii,min);
       ii=min;
     }  
-      
+    
+    /*
+    try {
+      if (heap.size() > 1)  
+        graph[ heap[1] ].neq(vtx.dist_rock, vtx.dist_entrance);
+    } catch (NonUnique &e) {
+        cerr << "vtx: " << vtx.idx << " , top: " << heap[1] << endl;
+    }
+    */
+    
     // set rock
     //cout << vtx.idx<< "pop:" << vtx.mst_parent<< endl;
-    for(uint j=0; j<4; j++) {
-      if ( vtx.ngh[j]>0 && vtx.rock[j] == 256) {
-        graph[ vtx.ngh[j] ].rock[ back_idx[j] ] = random();    
+    for(uint j=0; j<4; j++) {  
+      if ( vtx.ngh[j]>0 && vtx.rock[j] == modulo) {
+        // set rock hardness to the neighbour vtx, 
+        // need not to set for vtx since it is closed
         
-       // cout<< graph[ vtx.ngh[j] ].idx << " nh:" << back_idx[j] << " " 
-       //    << graph[ vtx.ngh[j] ].rock[ back_idx[j] ] <<  endl;
+        graph[ vtx.ngh[j] ].rock[ back_idx[j] ] = r_num;
+        random();    
+        
+        //cout<< graph[ vtx.ngh[j] ].idx << " nh:" << back_idx[j] << " " 
+        //   << graph[ vtx.ngh[j] ].rock[ back_idx[j] ] <<  endl;
       } else {
         //cout << vtx.rock[j] << ",";
       }  
@@ -131,38 +179,41 @@ public:
     }
     //cout << endl;
     
+    // set edge codes for output
     if (vtx.mst_parent!=-1) {
       uint parent_idx=vtx.ngh[ vtx.mst_parent ];
       //cout << "set: " << vtx.idx << " " << vtx.mst_parent << endl;
       //cout << "set: " << parent_idx << " " << back_idx[ vtx.mst_parent ] << endl;
       graph[parent_idx].rock[ back_idx[ vtx.mst_parent ] ]=-2; // set MST edge
       vtx.rock[ vtx.mst_parent ] = -2;
-    } else if (vtx.idx != 0) cout << "no parent: " << vtx.idx << endl;  
+    } else if (vtx.idx != 0) cerr << "no parent: " << vtx.idx << endl; 
+    
+    // close vtx
     vtx.dist_rock=-1;
     
     return vtx;
   }  
   
-  inline void update(Vtx &vtx, int dist_rock) {
-    if (vtx.dist_rock > dist_rock) {
+  inline void update(Vtx &vtx, int dist_rock, int dist_entrance) {
+      vtx.neq(dist_rock, dist_entrance);
       vtx.dist_rock=dist_rock;
+      vtx.dist_entrance = dist_entrance;
       uint ii=vtx.heap_idx;
       while (ii >1 && heap_lt(ii, ii/2)) {
         heap_swap(ii,ii/2);
         ii=ii/2;
-      }  
-    }  
+      }    
   }  
 
-  uint r_num, size;
+  uint r_num, modulo; // seed, modulo of LCG
+  uint size;    // heap size
   vector<uint> heap;
   vector<struct Vtx> graph;
 };  
 
 
-int solve( istream &in, ostream &out) {
+void solve( istream &in, ostream &out) {
   uint n, m, seed;
-  bool multi_mst = false;
   in >> n;
   in >> m;
   in >> seed;
@@ -170,27 +221,27 @@ int solve( istream &in, ostream &out) {
   
   PQ p_queue(n,m,seed);
   
-  while (p_queue.heap.size() > 0) {
+  while (p_queue.heap.size() > 1) {
+    // add next vtx to MST, generate new weights
     Vtx &next_vtx = p_queue.pop_head();  
-    // neighbours
+    //cerr << "vtx: " << next_vtx.idx << endl;
+    
+    // update neighbours
     for(uint idir=0; idir<4; idir++) 
-      if (next_vtx.ngh[idir] >0) {
-        
+      if (next_vtx.ngh[idir] >0) { // neighbour exists, deals with borders
+        // neighbour vtx
         Vtx &ngh=p_queue.graph[ next_vtx.ngh[idir] ];
         //cout<< ngh.idx << " ngh:" << back_idx[idir] << " " 
         //    << ngh.rock[ back_idx[idir] ] <<  endl;
-        if (ngh.dist_rock==-1) continue;
+        if (ngh.dist_rock==-1) continue; // skip closed vtx
         // update ngh
-        uint alt = next_vtx.dist_entrance + 1;
-        
-        multi_mst = (ngh.rock[ back_idx[idir] ] == ngh.dist_rock) && 
-                    (alt == ngh.dist_entrance);
+        uint alt_dist = next_vtx.dist_entrance + 1;         
+        // complex access to the rock hardness due to already closed next_vtx
+        uint alt_rock =ngh.rock[ back_idx[idir] ];
 
-        if (ngh.rock[ back_idx[idir] ] < ngh.dist_rock ||
-            ngh.rock[ back_idx[idir] ] == ngh.dist_rock && alt < ngh.dist_entrance) {
+        if (ngh.gt(alt_rock, alt_dist)) {
           ngh.mst_parent=back_idx[idir];
-          ngh.dist_entrance=alt;
-          p_queue.update(ngh, ngh.rock[ back_idx[idir] ]);
+          p_queue.update(ngh, alt_rock, alt_dist);
         }  
       }  
   }
@@ -215,26 +266,10 @@ int solve( istream &in, ostream &out) {
     out << endl;
   }
   //cout << "multi: " << p_queue.multi_mst << endl;
-  return multi_mst;
 }
 
 
-/**
- * make random oriented multigraph with loops
- * it is guaranteed, taht number of componends is at least n_comp which is randomly generated
- * up to max_n_comp constant.
- */ 
-void make_dataset(ostream &input_data, uint n, uint m) {
-  stringstream input, output;  
-  while (1) {
-    input << n << " " << m << " " << rand()%256;
-    
-    // end when solution is unique
-    if ( !solve(input, output) ) break;
-  }  
-  input_data << input.str();
-}  
-  
+
 
 /**
  * Creates the test input data for the problem.
@@ -242,14 +277,23 @@ void make_dataset(ostream &input_data, uint n, uint m) {
  * No checking should be performed. It is done by separate solve step.
  */  
 void make_data(ostream &out, unsigned int problem_size) {
-  uint sq = sqrt(problem_size);  
-  uint n = sq/2 + rand()%sq;
-  uint m =problem_size / n;
-
-  stringstream input_data;
-  make_dataset(input_data, n,m);   
-  out << input_data.str();  
-
+  while (1) {
+    stringstream input, output;  
+    uint sq = sqrt(problem_size);  
+    uint n = sq/2 + rand()%sq;
+    uint m =problem_size / n;
+    input << n << " " << m << " " << rand()%256;
+    
+    // end when solution is unique
+    try {
+        cerr << "Try: " << input.str() << endl;
+        solve(input, output);
+    } catch (const NonUnique &e)  {
+        continue;
+    }
+    out << input.str();
+    break;
+  }  
 }
 
 
@@ -263,6 +307,7 @@ int main(int argc, char* argv[]) {
             i++;
             if (i < argc) 
                 stringstream(argv[i]) >> problem_size;
+                random_seed = problem_size;
         } else if (argv[i] == string("-r")) {
             i++;
             if (i < argc) {

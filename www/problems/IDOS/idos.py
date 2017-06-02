@@ -1,14 +1,23 @@
+from __future__ import print_function
+
 from optparse import OptionParser
 from random import randint
 import random
 import os, sys, json
 import math
 import StringIO
+
+
+
+def eprint(*args, **kwargs):
+    """ print to stderr """
+    print(*args, file=sys.stderr, **kwargs)
+    
 '''
 TODO:
 - big problem with non-unique solutions, current code tries to
   remove some edges in order to make the queries unique, in particular   
-  when we detect the duplicate paths we find the first event no already used
+  when we detect the duplicate paths we find the first event not already used
   and remove it. The problem is that we do not know "if the event is used" in 
   possible resulting path.
 '''
@@ -291,7 +300,12 @@ def make_data(in_stream, problem_size):
     
     graph = []
     for i_station in range(problem_size):
-        n_connections = random.randrange(10, 12*24)
+        #n_connections = random.randrange(10, 12*20)
+        interval=math.exp( random.gauss(math.log(15), math.log(5) ) )
+        interval = max(min(90, interval), 5)
+        n_connections = int((20*60)/interval)
+        
+        #eprint( "ist: {} inter: {} ncon: {}".format(i_station, interval, n_connections))
         times = []
         for i_conn in range(n_connections):
             times.append( random.randrange(0, 60*24-10) )
@@ -299,7 +313,7 @@ def make_data(in_stream, problem_size):
         last_connection = None
         for time in times:
             target_station = random.randrange(0, problem_size -1)
-            if target_station >= i_station:
+            if target_station >= i_station: # avoid loops
                 target_station+=1                
             assert i_station != target_station    
             max_travel_time = min( 60*24 - time-1, 15)                
