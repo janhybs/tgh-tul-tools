@@ -35,7 +35,7 @@ class JobRequest(object):
         try:
             self.cases = request.get('cases', pluck(self.problem.input if self.problem else [], 'id'))
         except Exception as e:
-            print e
+            print(e)
             self.cases = []
             raise 
         

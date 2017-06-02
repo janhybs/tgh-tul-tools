@@ -8,7 +8,7 @@ import time
 import datetime
 
 
-from jobs.job_processing import DynamicLanguage, Command, LangMap
+from jobs.job_processing import DynamicLanguage, Command, LangMap, PopenArgs
 from jobs.job_request import ProblemInput
 from utils.globals import remove_empty, compare, tryjson, Config, ensure_path, GlobalTimeout, \
     SmartFile, ProcessException
@@ -184,7 +184,7 @@ class JobControl(object):
         def target():
             start_time = time.time()
             while True:
-                print datetime.timedelta(seconds=int(time.time()-start_time))
+                print(datetime.timedelta(seconds=int(time.time()-start_time)))
                 time.sleep(0.5)
 
         monitor_thread = threading.Thread(name='monitor-thread', target=target)
@@ -249,7 +249,7 @@ class StudentJob(object):
             return case_result
 
         # run command
-        run_args = self.module.run()
+        run_args = self.module.run()  # type: jobs.job_processing.PopenArgs
         run_command = Command(run_args, inn_file, out_file, err_file)
         run_command.scale = self.r.lang.scale
         run_result = run_command.run(input_spec.time * wait_timescale)
@@ -257,7 +257,7 @@ class StudentJob(object):
         # grab result
         case_result.duration = run_result.duration
         case_result.returncode = run_result.returncode
-        case_result.command = run_args[-1] if len(run_args) > 0 else '<no command>'
+        case_result.command = ' '.join(run_args.command) if len(run_args.command) > 0 else '<no command>'
 
         # timeout
         if run_result.global_terminated:
@@ -418,7 +418,7 @@ class ReferenceJob(object):
             # grab result
             case_result.duration = run_result.duration
             case_result.returncode = run_result.returncode
-            case_result.command = run_args[-1] if len(run_args) > 0 else '<no command>'
+            case_result.command = ' '.join(run_args.command) if len(run_args.command) > 0 else '<no command>'
 
             # run error
             if run_result.returncode != 0:
@@ -464,7 +464,7 @@ class ReferenceJob(object):
         # grab result
         case_result.duration = run_result.duration
         case_result.returncode = run_result.returncode
-        case_result.command = run_args[-1] if len(run_args) > 0 else '<no command>'
+        case_result.command = ' '.join(run_args.command) if len(run_args.command) > 0 else '<no command>'
 
         # run error
         if run_result.returncode != 0:

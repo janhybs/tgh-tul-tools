@@ -123,6 +123,7 @@ class TGHProcessor(Daemon):
         call(['chmod', '-R', '777', job.root])
 
         if type(result) is not list:
+            Logger.instance().info(str(result))
             Logger.instance().info('Error during execution! ')
             Logger.instance().info(result.err_file.value())
 

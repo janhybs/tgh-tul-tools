@@ -69,7 +69,7 @@ class Command(object):
         self.err = None
 
         self.process = None
-        self.args = args
+        self.args = args    # type: PopenArgs
         self.command = '; '.join(args)
         self.timer = Timer()
         self.terminated = False
@@ -94,26 +94,30 @@ class Command(object):
         timeout = min([max_wait_time, timeout]) * self.scale
 
         def target():
-            Logger.instance().info('Running command with time limit {:1.2f} s: {}'.format(timeout, self.command))
-            self.process = Popen([self.command], stdout=self.out, stderr=self.err, stdin=self.inn, shell=True)
+            Logger.instance().info('Running command with time limit {:1.2f} s: {} in {}'.format(timeout, self.args.command, self.args.cwd))
+            self.process = Popen(self.args.command, stdout=self.out, stderr=self.err, stdin=self.inn, cwd=self.args.cwd)
+            Logger.instance().info('started PID {}'.format(self.process.pid))
             self.process.communicate()
             Logger.instance().info('Command finished')
 
         thread = threading.Thread(target=target)
         thread.start()
         thread.join(GlobalTimeout.time_left())
+
         if thread.is_alive():
             Logger.instance().info('Terminating process')
             self.terminated = True
             self.global_terminate = GlobalTimeout.time_left() < 0
+
             try:
                 self.process.terminate()
             except Exception as e:
-                pass
+                print(e)
+
             try:
                 self.process.kill()
             except Exception as e:
-                pass
+                print(e)
             thread.join()
 
     def run(self, timeout=max_wait_time):
@@ -142,101 +146,145 @@ class Command(object):
         )
 
 
+class PopenArgs(object):
+    def __init__(self, cwd=None, *args):
+        self.cwd = cwd
+        self.command = args
+
+
 class LanguageProcess(object):
     def __init__(self, request):
         """
         :type request: jobs.job_request.JobRequest
         """
         self.request = request
+        self.cd_compile = None
+        self.cd_run = None
 
     def compile(self):
-        return [
-            'cd "{r.root}"'.format(r=self.request),
-            '{r.lang.compile} "{r.filename}"'.format(r=self.request)
-        ]
+        r = self.request
+        return PopenArgs(r.root,
+                         r.lang.compile, r.filename)
+        # return [
+        #     'cd "{r.root}"'.format(r=self.request),
+        #     '{r.lang.compile} "{r.filename}"'.format(r=self.request)
+        # ]
 
     def run(self):
-        return [os.path.join(self.request.root, 'main')]
+        r = self.request
+        return PopenArgs(None,
+                         os.path.join(self.request.root, 'main'))
+        # return [os.path.join(self.request.root, 'main')]
 
 
 class LanguageC(LanguageProcess):
     def compile(self):
-        return [
-            'cd "{r.root}"'.format(r=self.request),
-            '{r.lang.compile} -o main "{r.filename}"'.format(r=self.request)
-        ]
+        r = self.request
+        return PopenArgs(r.root,
+                         r.lang.compile, '-o', 'main', r.filename)
+        # return [
+        #     'cd "{r.root}"'.format(r=self.request),
+        #     '{r.lang.compile} -o main "{r.filename}"'.format(r=self.request)
+        # ]
 
 
 class LanguageCpp(LanguageProcess):
     def compile(self):
-        return [
-            'cd "{r.root}"'.format(r=self.request),
-            '{r.lang.compile} -o main "{r.filename}"'.format(r=self.request)
-        ]
+        r = self.request
+        return PopenArgs(r.root,
+                         r.lang.compile, '-o', 'main', r.filename)
+        # return [
+        #     'cd "{r.root}"'.format(r=self.request),
+        #     '{r.lang.compile} -o main "{r.filename}"'.format(r=self.request)
+        # ]
 
 
 class LanguageCpp11(LanguageProcess):
     def compile(self):
-        return [
-            'cd "{r.root}"'.format(r=self.request),
-            '{r.lang.compile} -o main -std=c++11 "{r.filename}"'.format(r=self.request)
-        ]
+        r = self.request
+        return PopenArgs(r.root,
+                         r.lang.compile, '-o', 'main', '-std=c++11', r.filename)
+        # return [
+        #     'cd "{r.root}"'.format(r=self.request),
+        #     '{r.lang.compile} -o main -std=c++11 "{r.filename}"'.format(r=self.request)
+        # ]
 
 
 class LanguageCS(LanguageProcess):
     def compile(self):
-        return [
-            'cd "{r.root}"'.format(r=self.request),
-            '{r.lang.compile} "{r.filename}" -o main'.format(r=self.request)
-        ]
+        r = self.request
+        return PopenArgs(r.root,
+                         r.lang.compile, r.filename, '-o', 'main')
+        # return [
+        #     'cd "{r.root}"'.format(r=self.request),
+        #     '{r.lang.compile} "{r.filename}" -o main'.format(r=self.request)
+        # ]
 
     def run(self):
-        return [
-            'cd "{r.root}"'.format(r=self.request),
-            '{r.lang.run} "{r.main_file_name}"'.format(r=self.request)
-        ]
+        r = self.request
+        return PopenArgs(r.root,
+                         r.lang.run, r.main_file_name)
+        # return [
+        #     'cd "{r.root}"'.format(r=self.request),
+        #     '{r.lang.run} "{r.main_file_name}"'.format(r=self.request)
+        # ]
 
 
 class LanguageJava(LanguageProcess):
     def compile(self):
-        return [
-            'cd "{r.root}"'.format(r=self.request),
-            '{r.lang.compile} "{r.filename}"'.format(r=self.request)
-        ]
+        r = self.request
+        return PopenArgs(r.root,
+                         r.lang.compile, r.filename)
+        # return [
+        #     'cd "{r.root}"'.format(r=self.request),
+        #     '{r.lang.compile} "{r.filename}"'.format(r=self.request)
+        # ]
 
     def run(self):
-        return [
-            'cd "{r.root}"'.format(r=self.request),
-            '{r.lang.run} main'.format(r=self.request)
-        ]
+        r = self.request
+        return PopenArgs(r.root,
+                         r.lang.run, 'main')
+        # return [
+        #     'cd "{r.root}"'.format(r=self.request),
+        #     '{r.lang.run} main'.format(r=self.request)
+        # ]
 
 
 class LanguagePascal(LanguageProcess):
     def compile(self):
-        return [
-            'cd "{r.root}"'.format(r=self.request),
-            '{r.lang.compile} "{r.filename}"'.format(r=self.request)
-        ]
+        r = self.request
+        return PopenArgs(r.root,
+                         r.lang.compile, r.filename)
+        # return [
+        #     'cd "{r.root}"'.format(r=self.request),
+        #     '{r.lang.compile} "{r.filename}"'.format(r=self.request)
+        # ]
 
 
 class LanguagePython27(LanguageProcess):
     def compile(self):
-        return []
+        return PopenArgs()
 
     def run(self):
-        return [
-            '{r.lang.run} "{r.main_file}"'.format(r=self.request)
-        ]
+        r = self.request # changed
+        return PopenArgs(r.root,
+                         r.lang.run, r.main_file)
+        # return [
+        #     '{r.lang.run} "{r.main_file}"'.format(r=self.request)
+        # ]
 
 
 class LanguagePython35(LanguageProcess):
     def compile(self):
-        return []
+        return PopenArgs()
 
     def run(self):
-        return [
-            '{r.lang.run} "{r.main_file}"'.format(r=self.request)
-        ]
+        r = self.request # changed
+        return PopenArgs(r.root,
+                         r.lang.run, r.main_file)
+        # return [
+        #     '{r.lang.run} "{r.main_file}"'.format(r=self.request)
+        # ]
 
 
 class LangMap(object):
@@ -250,6 +298,7 @@ class LangMap(object):
         'PYTHON27':LanguagePython27,
         'PYTHON35':LanguagePython35,
     }
+
     @staticmethod
     def get(name):
         """
